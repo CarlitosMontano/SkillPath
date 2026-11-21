@@ -45,6 +45,7 @@ import {
   Award,
 } from "lucide-react";
 import { LearningRoutes } from "./modules/learning/LearningRoutes";
+import { Catalog } from "./modules/catalog/Catalog";
 
 type Page =
   | "Inicio"
@@ -1711,7 +1712,7 @@ function App() {
         </header>
         <main key={page} className={`main-content ${page === "Lección" ? "lesson-page" : ""}`}>
           {page === "Inicio" && Dashboard()}
-          {page === "Explorar aprendizaje" && Explore()}
+          {page === "Explorar aprendizaje" && <Catalog onOpenMyRoutes={() => go("Mis rutas")} />}
           {page === "Mis rutas" && <LearningRoutes />}
           {page === "Lección" && Lesson()}
           {page === "Mi progreso" && Growth()}
