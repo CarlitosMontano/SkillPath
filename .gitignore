@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+dist-ssr/
+build/
+coverage/
+
+# Vite and TypeScript caches
+.vite/
+.cache/
+*.tsbuildinfo
+vite.config.*.timestamp-*
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs
+logs/
+*.log
+*-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local tools and temporary files
+.claude-replay.*
+.tmp-*
+*.local
+
+# Figma Make state
+/.figma/design-context/
+
+# Platform-managed agent state
+/.plugins/
+/.opencode-skills/

@@ -1,0 +1,10 @@
+{
+  "description": "Una plataforma para estudiantes autodidactas que organiza rutas de aprendizaje, proyectos y habilidades para convertir el progreso personal en oportunidades profesionales.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
