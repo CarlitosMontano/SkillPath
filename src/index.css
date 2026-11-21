@@ -8,8 +8,8 @@
 @layer base {
   body {
     font-family: "DM Sans", sans-serif;
-    background: #fafbf9;
-    color: #25272d;
+    background: var(--canvas);
+    color: var(--ink);
     font-size: 13px;
     -webkit-font-smoothing: antialiased;
   }
@@ -40,7 +40,7 @@
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #345de3;
+    outline: 2px solid var(--brand);
   }
   h1,
   h2,
@@ -64,16 +64,16 @@
   input,
   textarea,
   select {
-    border: 1px solid #e4e5e8;
-    background: white;
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
     padding: 11px 13px;
     color: #343840;
   }
   input:focus,
   textarea:focus,
   select:focus {
-    outline: 2px solid #a2b5f5;
+    outline: 2px solid color-mix(in srgb, var(--brand) 38%, transparent);
     outline-offset: 1px;
   }
   textarea {
@@ -89,11 +89,31 @@
   }
 }
 :root {
-  --blue: #345de3;
-  --ink: #25272d;
-  --muted: #878990;
-  --border: #eaece9;
-  --green: #408064;
+  /* SkillPath visual tokens: educational, technological and professional. */
+  --brand: #3159d9;
+  --brand-strong: #2649bb;
+  --brand-soft: #edf1ff;
+  --ink: #202633;
+  --muted: #737986;
+  --surface: #ffffff;
+  --surface-subtle: #f7f8fb;
+  --canvas: #fafbfc;
+  --border: #e6e8ee;
+  --success: #28795a;
+  --warning: #a86c17;
+  --danger: #bd4d58;
+  --info: #3159d9;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 10px 28px rgb(31 42 68 / 6%);
+  --blue: var(--brand);
+  --green: var(--success);
+}
+::selection { background: var(--brand-soft); color: var(--ink); }
+.panel, .route-card, .catalog-card, .learning-route-card, .stage-accordion, .lesson-reading, .profile-layout > section, .cv-controls { box-shadow: var(--shadow-card); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
 /* Módulo de rutas: reutiliza la paleta y los componentes base existentes. */
@@ -189,9 +209,9 @@
   align-items: center;
   justify-content: center;
   gap: 17px;
-  border-radius: 7px;
-  background: var(--blue);
-  border: 1px solid var(--blue);
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  border: 1px solid var(--brand);
   color: white;
   padding: 12px 17px;
   font-size: 11px;
@@ -202,25 +222,25 @@
     box-shadow 0.2s;
 }
 .btn:hover:not(:disabled) {
-  background: #274eca;
-  box-shadow: 0 4px 12px #345de31a;
+  background: var(--brand-strong);
+  box-shadow: 0 5px 15px rgb(49 89 217 / 17%);
   transform: translateY(-2px);
 }
 .btn.secondary {
-  background: transparent;
-  color: #3f434a;
-  border-color: #dddfdf;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
 }
 .btn.secondary:hover {
-  background: white;
-  border-color: #aebce9;
+  background: var(--brand-soft);
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
 }
 .sidebar {
   overflow-y: auto;
   width: 221px;
   position: fixed;
   inset: 0 auto 0 0;
-  background: #fff;
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -238,7 +258,7 @@
   margin-bottom: 44px;
 }
 .brand-icon {
-  background: var(--blue);
+  background: var(--brand);
   color: white;
   width: 31px;
   height: 34px;
@@ -284,8 +304,8 @@
   color: var(--blue);
 }
 .nav-item.active {
-  background: #edf1ff;
-  color: #345cda;
+  background: var(--brand-soft);
+  color: var(--brand);
   font-weight: 600;
 }
 .nav-count {
