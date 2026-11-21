@@ -44,6 +44,7 @@ import {
   GitBranch,
   Award,
 } from "lucide-react";
+import { LearningRoutes } from "./modules/learning/LearningRoutes";
 
 type Page =
   | "Inicio"
@@ -1711,32 +1712,7 @@ function App() {
         <main key={page} className={`main-content ${page === "Lección" ? "lesson-page" : ""}`}>
           {page === "Inicio" && Dashboard()}
           {page === "Explorar aprendizaje" && Explore()}
-          {page === "Mis rutas" && (
-            <>
-              <SectionHeading
-                eyebrow="CAMINOS QUE YA SON TUYOS"
-                title="Aprender es seguir eligiendo."
-                subtitle="Retoma tus rutas activas. Tu siguiente descubrimiento está a una lección."
-              >
-                <Button secondary onClick={() => go("Explorar aprendizaje")}>
-                  <Plus size={16} /> Explorar rutas
-                </Button>
-              </SectionHeading>
-              <div className="filter-chips">
-                <button className="selected">En progreso · {enrolledRoutes.length}</button>
-              </div>
-              <div className="course-grid">
-                {enrolledRoutes.map((index) => (
-                  <RouteCard key={index} index={index} />
-                ))}
-              </div>
-              <div className="editorial-note">
-                <Leaf size={30} />
-                <h2>No tienes que aprenderlo todo hoy.</h2>
-                <p>Un paso con intención vale más que diez sin rumbo.</p>
-              </div>
-            </>
-          )}
+          {page === "Mis rutas" && <LearningRoutes />}
           {page === "Lección" && Lesson()}
           {page === "Mi progreso" && Growth()}
           {page === "Mis habilidades" && Skills()}
