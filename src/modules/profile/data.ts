@@ -17,10 +17,8 @@ export type Vacancy = {
 };
 
 export const profileEvidence: Evidence[] = [
-  { id: "html", title: "Fundamentos de HTML y CSS", kind: "Curso", description: "Estructura semántica, estilos responsive y accesibilidad básica.", skills: ["HTML", "CSS", "Diseño responsive", "Accesibilidad"], origin: "SkillPath · En progreso" },
   { id: "react", title: "React para interfaces", kind: "Curso", description: "Componentes, estado y construcción de interfaces reutilizables.", skills: ["React", "JavaScript", "Git"], origin: "SkillPath · Completado" },
   { id: "network", title: "Networking Basics", kind: "Certificación", description: "Fundamentos de redes, protocolos y seguridad.", skills: ["Redes", "Cisco", "Protocolos", "Seguridad de redes"], origin: "Cisco Networking Academy · Registrada", verified: false },
-  { id: "frontend-project", title: "Página personal accesible", kind: "Proyecto", description: "Sitio responsive con estructura semántica, navegación y formulario.", skills: ["HTML", "CSS", "Diseño responsive", "Git"], origin: "Proyecto guiado · SkillPath" },
   { id: "backend-project", title: "API de tareas", kind: "Proyecto", description: "API REST para organizar tareas y estados de trabajo.", skills: ["Node.js", "REST", "SQL"], origin: "Proyecto personal" },
 ];
 

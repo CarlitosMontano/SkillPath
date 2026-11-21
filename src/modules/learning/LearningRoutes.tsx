@@ -1,18 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ClipboardCheck, Code2, ExternalLink, LockKeyhole, Play, Sparkles } from "lucide-react";
-import { htmlLessons, projectCriteria, stageNames, type Question } from "./data";
+import { htmlLessons, projectCriteria, readLearningProgress, stageNames, type LearningProgress, type Question } from "./data";
 
 type View = "routes" | "detail" | "lesson" | "quiz" | "project" | "exam";
 type RouteKey = "fullstack" | "ux";
-type Stored = { passed: string[]; project: boolean; examAttempts: number; examPassed: boolean };
+type Stored = LearningProgress;
 const storageKey = "skillpath-learning-v1";
 const initial: Stored = { passed: ["html-structure", "html-text"], project: false, examAttempts: 0, examPassed: false };
 const uxLessons = ["Jerarquía visual", "Tipografía", "Color", "Espaciado"];
 const uxStages = [["Fundamentos visuales", "4 lecciones"], ["Investigación UX", "3 lecciones"], ["Flujos y wireframes", "3 lecciones"], ["UI en Figma", "5 lecciones"], ["Sistemas de diseño", "3 lecciones"], ["Prototipado y pruebas", "3 lecciones"]] as const;
 
-function load(): Stored {
-  try { return { ...initial, ...JSON.parse(localStorage.getItem(storageKey) || "{}") }; } catch { return initial; }
-}
+function load(): Stored { return readLearningProgress(); }
 function assessmentBank(): Question[] {
   const bank = htmlLessons.flatMap((lesson) => lesson.questions);
   return Array.from({ length: 30 }, (_, index) => ({ ...bank[index % bank.length], id: `exam-${index}`, prompt: index < bank.length ? bank[index].prompt : `${bank[index % bank.length].prompt} (repaso ${Math.floor(index / bank.length) + 1})` }));

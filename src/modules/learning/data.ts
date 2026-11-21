@@ -90,3 +90,27 @@ export const stageNames = [
 ] as const;
 
 export const projectCriteria = ["Incluye una etiqueta title", "Contiene un único h1", "Las imágenes incluyen alt", "Contiene una lista", "Contiene un enlace", "Contiene un formulario"];
+
+export type LearningProgress = {
+  passed: string[];
+  project: boolean;
+  examAttempts: number;
+  examPassed: boolean;
+};
+
+const learningStorageKey = "skillpath-learning-v1";
+const initialLearningProgress: LearningProgress = {
+  passed: ["html-structure", "html-text"],
+  project: false,
+  examAttempts: 0,
+  examPassed: false,
+};
+
+export function readLearningProgress(): LearningProgress {
+  try {
+    const saved = JSON.parse(localStorage.getItem(learningStorageKey) || "{}");
+    return { ...initialLearningProgress, ...saved };
+  } catch {
+    return initialLearningProgress;
+  }
+}
