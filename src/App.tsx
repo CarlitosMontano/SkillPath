@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { LearningRoutes } from "./modules/learning/LearningRoutes";
 import { Catalog } from "./modules/catalog/Catalog";
+import { ProfileWorkspace } from "./modules/profile/ProfileWorkspace";
 
 type Page =
   | "Inicio"
@@ -1718,7 +1719,7 @@ function App() {
           {page === "Mi progreso" && Growth()}
           {page === "Mis habilidades" && Skills()}
           {page === "Mis proyectos" && Projects()}
-          {page === "Mi CV y portafolio" && CV()}
+          {page === "Mi CV y portafolio" && <ProfileWorkspace />}
           {page === "Eventos y hackathons" && Opportunities({})}
           {page === "Certificaciones" && Opportunities({ certifications: true })}
           {page === "Configuración" && (
