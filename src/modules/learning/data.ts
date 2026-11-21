@@ -83,6 +83,57 @@ export const htmlLessons: Lesson[] = [
   },
 ];
 
+export const uxLessons: Lesson[] = [
+  {
+    id: "ux-hierarchy",
+    title: "Jerarquía visual",
+    description: "Guía la atención hacia lo importante sin sobrecargar la interfaz.",
+    content: "La jerarquía visual ordena la información usando tamaño, contraste, posición y espacio. Una persona debe reconocer primero la acción o contenido principal.",
+    example: "Título principal\nDescripción breve\n[ Acción principal ]   Acción secundaria",
+    questions: [
+      { id: "uxh1", prompt: "¿Qué ayuda a priorizar una acción principal?", options: ["Mismo tamaño para todo", "Contraste y posición", "Más texto", "Eliminar espacios"], answer: 1, explanation: "El contraste y la posición ayudan a reconocer qué es prioritario." },
+      { id: "uxh2", prompt: "Si todos los elementos llaman la atención, ¿qué ocurre?", options: ["La jerarquía mejora", "Nada destaca con claridad", "La pantalla carga más rápido", "Se vuelve más accesible"], answer: 1, explanation: "La atención se dispersa cuando no hay prioridades visuales." },
+      { id: "uxh3", prompt: "¿Qué recurso aporta separación entre grupos relacionados?", options: ["Espacio en blanco", "Texto más largo", "Más iconos", "Más colores"], answer: 0, explanation: "El espacio en blanco agrupa y separa contenido de manera comprensible." },
+    ],
+  },
+  {
+    id: "ux-typography",
+    title: "Tipografía",
+    description: "Crea una lectura cómoda y consistente en cada pantalla.",
+    content: "La tipografía comunica jerarquía y tono. Una escala limitada de tamaños y pesos permite que títulos, texto y ayudas tengan funciones reconocibles.",
+    example: "Título: 28 px · peso 700\nSubtítulo: 16 px · peso 500\nCuerpo: 14 px · peso 400",
+    questions: [
+      { id: "uxt1", prompt: "¿Qué favorece una escala tipográfica limitada?", options: ["Consistencia y lectura", "Más ruido visual", "Más pantallas", "Menos contenido"], answer: 0, explanation: "Una escala acotada hace que la jerarquía sea reconocible." },
+      { id: "uxt2", prompt: "¿Qué debe diferenciar un título del texto de cuerpo?", options: ["Su función y jerarquía", "Solo el idioma", "El borde", "El navegador"], answer: 0, explanation: "Tamaño y peso apoyan el rol distinto de cada texto." },
+      { id: "uxt3", prompt: "¿Cuál es una práctica de lectura responsable?", options: ["Contraste legible", "Texto gris muy claro", "Párrafos sin espacios", "Usar solo mayúsculas"], answer: 0, explanation: "El contraste suficiente es esencial para una lectura cómoda." },
+    ],
+  },
+  {
+    id: "ux-color",
+    title: "Color con intención",
+    description: "Usa el color para comunicar estados y orientar decisiones.",
+    content: "El color debe complementar la información, no ser su único canal. Los estados de éxito, alerta y error necesitan texto o iconos que expliquen su significado.",
+    example: "✓ Guardado correctamente\n! Revisa los campos obligatorios",
+    questions: [
+      { id: "uxc1", prompt: "¿El color debe ser el único indicador de un error?", options: ["Sí", "No, debe acompañarse de texto o icono", "Solo en móvil", "Solo en formularios"], answer: 1, explanation: "La información no debe depender únicamente de la percepción del color." },
+      { id: "uxc2", prompt: "¿Para qué es útil el color en una interfaz?", options: ["Comunicar estados", "Ocultar información", "Reemplazar etiquetas", "Aumentar texto"], answer: 0, explanation: "Puede reforzar estados, prioridades y retroalimentación." },
+      { id: "uxc3", prompt: "¿Qué debe revisarse al elegir color para texto?", options: ["Contraste con el fondo", "Solo la tendencia", "El tamaño de pantalla", "La hora"], answer: 0, explanation: "El contraste permite que el contenido siga siendo legible." },
+    ],
+  },
+  {
+    id: "ux-spacing",
+    title: "Espaciado",
+    description: "Construye ritmo y relaciones claras entre los elementos.",
+    content: "El espaciado crea agrupaciones visuales. Elementos relacionados deben estar más cerca entre sí que de otros grupos, manteniendo una escala repetible.",
+    example: "Título\n8 px\nDescripción\n24 px\nSiguiente sección",
+    questions: [
+      { id: "uxs1", prompt: "¿Qué comunica cercanía entre elementos?", options: ["Que están relacionados", "Que son errores", "Que son enlaces", "Que están bloqueados"], answer: 0, explanation: "La proximidad es un principio para agrupar información relacionada." },
+      { id: "uxs2", prompt: "¿Qué mejora una escala de espaciado repetible?", options: ["Consistencia", "Cantidad de colores", "Número de botones", "Velocidad de internet"], answer: 0, explanation: "Una escala evita medidas arbitrarias y da ritmo a la interfaz." },
+      { id: "uxs3", prompt: "¿Cuál es el objetivo del espaciado?", options: ["Respiración y estructura", "Llenar toda la pantalla", "Ocultar acciones", "Reducir contraste"], answer: 0, explanation: "El espacio facilita escaneo, comprensión y foco." },
+    ],
+  },
+];
+
 export const stageNames = [
   ["HTML", "5 lecciones"], ["CSS", "6 lecciones"], ["JavaScript", "6 lecciones"],
   ["Git y GitHub", "3 lecciones"], ["React y TypeScript", "5 lecciones"],
