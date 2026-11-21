@@ -56,9 +56,18 @@ export function LearningRoutes() {
     if (value >= 75) setNotice("Examen final aprobado. Habilidad desarrollada.");
   };
   const routeCards = tab === "Completadas" ? [] : [fullRoute, uxRoute];
+  const resetDemo = () => {
+    localStorage.removeItem(storageKey);
+    setState(initial);
+    setCriteria(projectCriteria.map(() => false));
+    setRepository("");
+    setAnswers({});
+    setResult(null);
+    setNotice("Progreso de la ruta reiniciado para la demostración.");
+  };
 
   if (view === "routes") return <>
-    <div className="learning-heading"><span className="eyebrow">CAMINOS QUE YA SON TUYOS</span><h1>Aprender es seguir eligiendo.</h1><p>Retoma tus rutas activas. Tu siguiente descubrimiento está a una lección.</p></div>
+    <div className="learning-heading"><span className="eyebrow">CAMINOS QUE YA SON TUYOS</span><h1>Aprender es seguir eligiendo.</h1><p>Retoma tus rutas activas. Tu siguiente descubrimiento está a una lección.</p><button className="demo-reset" onClick={resetDemo}>Reiniciar progreso de demostración</button>{notice && <span className="demo-notice" role="status">{notice}</span>}</div>
     <div className="learning-tabs" role="tablist">{["En progreso", "Completadas", "Todas"].map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? "selected" : ""} onClick={() => setTab(item)}>{item}{item === "En progreso" ? " · 2" : ""}</button>)}</div>
     <div className="learning-route-grid">{routeCards.map((item, index) => <button className="learning-route-card" key={item.name} onClick={() => goDetail(index === 0 ? "fullstack" : "ux")}><div><span className="route-card-icon"><Code2 size={20}/></span><span className="status-pill">En curso</span></div><h2>{item.name}</h2><p>{item.level}</p><div className="route-current"><b>Etapa actual</b><span>{item.current}</span></div><div className="learning-progress"><i style={{ width: `${item.progress}%` }}/></div><div className="route-card-footer"><span>{item.progress}% · {item.time}</span><span className="route-continue">Continuar <ArrowRight size={15}/></span></div></button>)}</div>
     {routeCards.length === 0 && <div className="empty"><Sparkles size={40}/><h2>Aún no hay rutas completadas</h2><p>Cuando cierres una ruta, aparecerá aquí.</p></div>}
