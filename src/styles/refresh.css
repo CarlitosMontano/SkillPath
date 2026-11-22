@@ -601,6 +601,209 @@ select:focus {
   animation: toast-up 400ms var(--ease-out) both;
 }
 
+/* ───────── Encabezados de página: compactos, es una app ───────── */
+.page-heading,
+.learning-heading {
+  padding: 4px 0 24px;
+}
+
+.page-heading > .eyebrow,
+.learning-heading > .eyebrow {
+  margin-bottom: 10px;
+}
+
+.page-heading h1,
+.learning-heading h1 {
+  font-size: clamp(26px, 2.3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  max-width: 30ch;
+}
+
+.page-heading > p,
+.learning-heading > p {
+  margin-top: 10px;
+  font-size: 14.5px;
+}
+
+.page-heading .btn {
+  margin-top: 0;
+}
+
+/* Pestañas de Certificaciones (recomendadas / afiliadas) */
+.cert-tabs {
+  margin: 0 0 20px;
+}
+
+/* Sin el bloque promocional, el pie de la barra lateral respira mejor */
+.sidebar-bottom {
+  padding-top: 16px;
+}
+
+/* ───────── Buscador global (Ctrl/⌘ K) ───────── */
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+  background: rgb(23 38 54 / 0.28);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Se abre muchas veces al día: aparece al instante, sin animación. */
+.palette {
+  width: 100%;
+  max-width: 600px;
+  max-height: min(560px, 76vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.palette-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.palette-input input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.palette-input input:focus {
+  box-shadow: none;
+}
+
+.palette kbd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.palette-results {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.palette-group {
+  display: block;
+  padding: 10px 10px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.palette-item[aria-selected="true"] {
+  background: var(--blue-soft);
+}
+
+.palette-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--blue-strong);
+}
+
+.palette-item[aria-selected="true"] .palette-icon {
+  background: var(--surface);
+}
+
+.palette-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.palette-text b {
+  font-size: 14px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-text small {
+  font-size: 12.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-enter {
+  flex: none;
+  color: var(--blue-strong);
+}
+
+.palette-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.palette-foot {
+  display: flex;
+  gap: 18px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--page);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.palette-foot kbd + kbd {
+  margin-left: 3px;
+}
+
+@media (max-width: 520px) {
+  .palette-overlay {
+    padding-top: 8px;
+  }
+  .palette-foot {
+    display: none;
+  }
+}
+
 /* ───────── Pantalla de acceso ───────── */
 .sp-login-submit {
   width: 100%;

@@ -13,6 +13,13 @@ const uxStages = [["Fundamentos visuales", "4 lecciones"], ["Investigación UX",
 function load(): Stored {
   try { return { ...initial, ...JSON.parse(localStorage.getItem(storageKey) || "{}") }; } catch { return initial; }
 }
+/** Progreso de la ruta Full Stack, el mismo que muestra «Mis rutas». */
+export function readFullstackProgress(): number {
+  const state = load();
+  const completed = state.passed.length + Number(state.project) + Number(state.examPassed);
+  return state.passed.length === 2 && !state.project && !state.examPassed ? 32 : Math.round((completed / 7) * 100);
+}
+export const UX_ROUTE_PROGRESS = 64;
 function assessmentBank(): Question[] {
   const bank = htmlLessons.flatMap((lesson) => lesson.questions);
   return Array.from({ length: 30 }, (_, index) => ({ ...bank[index % bank.length], id: `exam-${index}`, prompt: index < bank.length ? bank[index].prompt : `${bank[index % bank.length].prompt} (repaso ${Math.floor(index / bank.length) + 1})` }));
@@ -38,7 +45,7 @@ export function LearningRoutes() {
   const routeProgress = state.passed.length === 2 && !state.project && !state.examPassed ? 32 : stageProgress;
   const allMiniPassed = state.passed.length === htmlLessons.length;
   const fullRoute = { name: "Desarrollador/a Full Stack con IA", level: "Principiante → Intermedio", stages: 8, time: "48 horas restantes", progress: routeProgress, current: "HTML · L3 — Listas y enlaces" };
-  const uxRoute = { name: "Diseño de Producto UI/UX", level: "Principiante", stages: 6, time: "18 horas restantes", progress: 64, current: "Investigación UX · Entrevistas y descubrimiento" };
+  const uxRoute = { name: "Diseño de Producto UI/UX", level: "Principiante", stages: 6, time: "18 horas restantes", progress: UX_ROUTE_PROGRESS, current: "Investigación UX · Entrevistas y descubrimiento" };
   const active = route === "fullstack" ? fullRoute : uxRoute;
   const lesson = htmlLessons.find((item) => item.id === lessonId) || htmlLessons[2];
   const goDetail = (key: RouteKey) => { setRoute(key); setView("detail"); setOpenStage(0); };

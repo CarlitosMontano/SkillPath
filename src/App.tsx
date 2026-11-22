@@ -45,9 +45,20 @@ import {
   Award,
 } from "lucide-react";
 import { Bot, GraduationCap, LogOut, MessagesSquare } from "lucide-react";
-import { LearningRoutes } from "./modules/learning/LearningRoutes";
+import { LearningRoutes, readFullstackProgress, UX_ROUTE_PROGRESS } from "./modules/learning/LearningRoutes";
 import { usePlatformState } from "./modules/platform/state";
-import { goalOptions, experienceOptions, timeOptions } from "./modules/platform/data";
+import {
+  affiliatedCerts,
+  areas,
+  completedProjects,
+  courses,
+  events,
+  goalOptions,
+  experienceOptions,
+  recommendedCerts,
+  timeOptions,
+} from "./modules/platform/data";
+import { CommandPalette, type PaletteItem } from "./modules/platform/CommandPalette";
 import { Login } from "./modules/platform/Login";
 import { WelcomeChat } from "./modules/platform/WelcomeChat";
 import { HomeOverview, type PlatformPage } from "./modules/platform/HomeOverview";
@@ -80,31 +91,36 @@ const navigation = [
   { name: "Portafolio", icon: FileText },
   { name: "Foro", icon: MessagesSquare },
   { name: "Eventos recomendados", icon: CalendarDays },
-  { name: "Certificaciones afiliadas", icon: GraduationCap },
-  { name: "Certificaciones recomendadas", icon: Award },
+  { name: "Certificaciones", icon: Award },
 ] as const;
+type NavName = (typeof navigation)[number]["name"];
+/** «Certificaciones» agrupa las dos vistas (recomendadas y afiliadas) en pestañas. */
+const navTarget = (name: NavName): Page => (name === "Certificaciones" ? "Certificaciones recomendadas" : name);
+const isCertPage = (page: string) => page.startsWith("Certificaciones");
 const communityStart = navigation.findIndex((item) => item.name === "Foro");
 const routes = [
   {
-    title: "Diseño UX/UI desde cero",
+    // Mismo nombre y progreso que en «Mis rutas».
+    title: "Diseño de Producto UI/UX",
     category: "Diseño",
     description: "Diseña experiencias que las personas disfruten usar.",
     level: "Principiante",
-    progress: 64,
-    time: "4 h restantes",
-    next: "Principios de diseño visual",
+    progress: UX_ROUTE_PROGRESS,
+    time: "18 h restantes",
+    next: "Investigación UX · Entrevistas y descubrimiento",
     color: "purple",
     icon: Palette,
     lessons: 24,
   },
   {
-    title: "Desarrollo web con React",
+    // Mismo nombre que en «Mis rutas»; su progreso se lee de ahí (ver currentProgress).
+    title: "Desarrollador/a Full Stack con IA",
     category: "Programación",
-    description: "De tu primera línea de código a tu propia aplicación.",
-    level: "Intermedio",
+    description: "Construye productos web completos e integra IA de forma responsable.",
+    level: "Principiante",
     progress: 32,
-    time: "8 h restantes",
-    next: "Componentes y propiedades",
+    time: "48 h restantes",
+    next: "HTML · Listas y enlaces",
     color: "blue",
     icon: Code2,
     lessons: 32,
@@ -163,7 +179,7 @@ const skills = [
     name: "Diseño de interfaces",
     state: "En aprendizaje",
     level: "Básico",
-    route: "Diseño UX/UI desde cero",
+    route: "Diseño de Producto UI/UX",
     tests: "2 de 4",
     projects: 0,
     icon: Palette,
@@ -172,7 +188,7 @@ const skills = [
     name: "HTML y CSS",
     state: "Demostrada",
     level: "Intermedio",
-    route: "Fundamentos de desarrollo web",
+    route: "Desarrollador/a Full Stack con IA",
     tests: "4 de 4",
     projects: 2,
     icon: Code2,
@@ -181,7 +197,7 @@ const skills = [
     name: "Investigación de usuarios",
     state: "Desarrollada",
     level: "Básico",
-    route: "Diseño UX/UI desde cero",
+    route: "Diseño de Producto UI/UX",
     tests: "3 de 3",
     projects: 0,
     icon: Users,
@@ -190,7 +206,7 @@ const skills = [
     name: "JavaScript",
     state: "Desarrollada",
     level: "Intermedio",
-    route: "JavaScript moderno",
+    route: "Desarrollador/a Full Stack con IA",
     tests: "5 de 5",
     projects: 0,
     icon: Zap,
@@ -199,7 +215,7 @@ const skills = [
     name: "React",
     state: "En aprendizaje",
     level: "Básico",
-    route: "Desarrollo web con React",
+    route: "Desarrollador/a Full Stack con IA",
     tests: "1 de 4",
     projects: 0,
     icon: Code2,
@@ -267,10 +283,11 @@ function App() {
   const [settings, setSettings] = useState([true, true, false]);
   const [userName, setUserName] = useState("Alex");
   const [surname, setSurname] = useState("Morgan");
-  const [headline, setHeadline] = useState("Diseñador de producto en formación");
+  const [headline, setHeadline] = useState("Desarrollador/a web en formación");
   const [bio, setBio] = useState(
-    "Combino diseño y desarrollo para crear experiencias digitales claras, accesibles y con propósito. Aprendo construyendo.",
+    "Aprendo desarrollo web construyendo proyectos reales: interfaces claras, accesibles y con propósito.",
   );
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [drafts, setDrafts] = useState<{ name: string; description: string }[]>([]);
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
@@ -283,13 +300,9 @@ function App() {
       }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setPage("Explorar aprendizaje");
         setModal(null);
         setMobileMenu(false);
-        window.setTimeout(
-          () => document.querySelector<HTMLInputElement>(".explore-search input")?.focus(),
-          0,
-        );
+        setPaletteOpen((open) => !open);
       }
       if (event.key === "Tab" && dialog) {
         const focusable = dialog.querySelectorAll<HTMLElement>(
@@ -390,8 +403,84 @@ function App() {
     },
   ][activeRoute];
   const totalDone = completed.length;
+  // Las dos rutas inscritas leen su progreso de «Mis rutas» para que los números coincidan.
   const currentProgress = (i: number) =>
-    Math.min(100, routes[i].progress + completed.filter((k) => k.startsWith(`${i}-`)).length * 4);
+    i === 1
+      ? readFullstackProgress()
+      : Math.min(100, routes[i].progress + completed.filter((k) => k.startsWith(`${i}-`)).length * 4);
+  /** Las rutas 0 y 1 viven en «Mis rutas»; el resto abre su lección de muestra. */
+  const continueRoute = (index: number) => (index <= 1 ? go("Mis rutas") : openLesson(index));
+
+  /** Todo lo que se puede encontrar desde el buscador global (Ctrl/⌘ K). */
+  const paletteItems = (): PaletteItem[] => [
+    ...navigation.map((item) => ({
+      id: `page-${item.name}`,
+      group: "Páginas",
+      label: item.name,
+      icon: item.icon,
+      run: () => go(navTarget(item.name)),
+    })),
+    { id: "page-config", group: "Páginas", label: "Configuración", icon: Settings, run: () => go("Configuración") },
+    ...routes.map((route, index) => ({
+      id: `route-${index}`,
+      group: "Rutas",
+      label: route.title,
+      hint: `${route.category} · ${route.level}`,
+      icon: route.icon,
+      run: () => continueRoute(index),
+    })),
+    ...courses.map((course) => ({
+      id: `course-${course.id}`,
+      group: "Cursos",
+      label: course.name,
+      hint: `${areas[course.area].short} · ${course.comingSoon ? "Próximamente" : course.level}`,
+      icon: BookOpen,
+      run: () => {
+        setCourseToOpen(course.id);
+        go("Áreas y cursos");
+      },
+    })),
+    ...completedProjects.map((project) => ({
+      id: `project-${project.name}`,
+      group: "Proyectos",
+      label: project.name,
+      hint: project.tech.join(" · "),
+      icon: FolderKanban,
+      run: () => go("Mis proyectos"),
+    })),
+    ...events.map((event) => ({
+      id: `event-${event.id}`,
+      group: "Eventos",
+      label: event.name,
+      hint: event.modality,
+      icon: CalendarDays,
+      run: () => go("Eventos recomendados"),
+    })),
+    ...recommendedCerts.map((cert) => ({
+      id: `cert-${cert.id}`,
+      group: "Certificaciones",
+      label: cert.name,
+      hint: `${cert.provider} · Recomendada`,
+      icon: Award,
+      run: () => go("Certificaciones recomendadas"),
+    })),
+    ...affiliatedCerts.map((cert) => ({
+      id: `aff-${cert.id}`,
+      group: "Certificaciones",
+      label: cert.name,
+      hint: `${cert.institution} · Ejemplo`,
+      icon: GraduationCap,
+      run: () => go("Certificaciones afiliadas"),
+    })),
+    ...platform.posts.map((post) => ({
+      id: `post-${post.id}`,
+      group: "Foro",
+      label: post.title,
+      hint: `${post.author} · ${post.category}`,
+      icon: MessagesSquare,
+      run: () => go("Foro"),
+    })),
+  ];
 
   function RouteCard({ index, explore = false }: { index: number; explore?: boolean }) {
     const route = routes[index];
@@ -405,10 +494,10 @@ function App() {
           </div>
           <span className="art-caption">
             {route.category === "Diseño"
-              ? "MAKE IT HUMAN."
+              ? "HAZLO HUMANO."
               : route.category === "Programación"
-                ? "BUILD SOMETHING."
-                : "KEEP EXPLORING."}
+                ? "CONSTRUYE ALGO."
+                : "SIGUE EXPLORANDO."}
           </span>
           <span className="art-number">0{index + 1}</span>
         </div>
@@ -435,7 +524,7 @@ function App() {
             <span className="muted row">
               <Clock3 size={13} /> {route.time}
             </span>
-            <button className="text-button" onClick={() => openLesson(index)}>
+            <button className="text-button" onClick={() => continueRoute(index)}>
               {explore ? "Ver ruta" : "Continuar"} <ArrowRight size={15} />
             </button>
           </div>
@@ -475,17 +564,14 @@ function App() {
         sub: "Proyecto completado",
         style: "done",
       },
-      { icon: Palette, name: "Diseño UX/UI", sub: "Estás aquí · 64%", style: "current" },
+      { icon: Palette, name: "Diseño UI/UX", sub: `Estás aquí · ${UX_ROUTE_PROGRESS}%`, style: "current" },
       { icon: Trophy, name: "Tu primer producto", sub: "Tu próximo gran logro", style: "locked" },
     ];
     return (
       <section className="growth-map panel">
         <div className="row between">
           <div>
-            <div className="row gap-10">
-              <h2>Tu mapa de crecimiento</h2>
-              <span className="pill purple-pill">Un paso a la vez</span>
-            </div>
+            <h2>Tu mapa de crecimiento</h2>
             <p className="section-description">Todo lo que aprendes te lleva a un nuevo lugar.</p>
           </div>
           <button className="text-button" onClick={() => go("Mi progreso")}>
@@ -512,7 +598,7 @@ function App() {
             <button
               key={node.name}
               className={`map-node node-${i} ${node.style}`}
-              onClick={() => (i === 3 ? openLesson(0) : setModal(node.name))}
+              onClick={() => (i === 3 ? continueRoute(0) : setModal(node.name))}
             >
               <span className="node-icon">
                 <node.icon size={22} strokeWidth={1.7} />
@@ -580,7 +666,7 @@ function App() {
     return (
       <>
         <div className="welcome-row">
-          <span>UN NUEVO DÍA, UN NUEVO PASO</span>
+          <span>RESUMEN DE HOY</span>
           <span>{todayLabel}</span>
         </div>
         <section className="hero">
@@ -606,7 +692,7 @@ function App() {
               <br className="desktop-br" /> lo que aprendes en oportunidades reales.
             </p>
             <div className="hero-actions">
-              <Button onClick={() => openLesson(0)}>
+              <Button onClick={() => go("Mis rutas")}>
                 Continuar aprendiendo <ArrowUpRight size={17} />
               </Button>
               <Button secondary onClick={() => go("Explorar aprendizaje")}>
@@ -645,7 +731,6 @@ function App() {
                 Tu futuro está<b>en construcción.</b>
               </div>
             </div>
-            <span className="visual-caption">EL SIGUIENTE PASO ES TUYO ↗</span>
           </div>
         </section>
         <section className="stats-strip">
@@ -666,16 +751,17 @@ function App() {
             },
             {
               icon: Layers3,
-              value: "12",
+              // Mismas cifras que «Mis habilidades» y «Mis proyectos».
+              value: String(skills.length).padStart(2, "0"),
               label: "Habilidades desarrolladas",
-              detail: "4 demostradas",
+              detail: `${skills.filter((s) => s.state === "Demostrada").length} demostradas`,
               color: "green",
             },
             {
               icon: FolderKanban,
-              value: "03",
+              value: String(completedProjects.length).padStart(2, "0"),
               label: "Proyectos terminados",
-              detail: "Ideas hechas realidad",
+              detail: "También en tu portafolio",
               color: "yellow",
             },
             {
@@ -739,16 +825,6 @@ function App() {
           </section>
           <WeeklyGoal />
         </div>
-        <section className="discovery-banner">
-          <Sparkles size={27} />
-          <div>
-            <h2>No sabes hasta dónde puedes llegar. Todavía.</h2>
-            <p>Descubre algo nuevo. Puede ser el comienzo de tu próximo camino.</p>
-          </div>
-          <Button secondary onClick={() => go("Explorar aprendizaje")}>
-            Encuentra tu próxima habilidad <ArrowUpRight size={17} />
-          </Button>
-        </section>
       </>
     );
   }
@@ -785,9 +861,7 @@ function App() {
             "Inteligencia artificial",
             "Negocios",
             "Finanzas personales",
-            "Productividad",
             "Comunicación",
-            "Desarrollo personal",
           ].map((c) => (
             <button
               key={c}
@@ -835,11 +909,6 @@ function App() {
             </Button>
           </div>
         )}
-        <div className="editorial-note">
-          <span>APRENDE → PRACTICA → CONSTRUYE → DEMUESTRA → CRECE</span>
-          <h2>Tu curiosidad no tiene una sola dirección.</h2>
-          <p>Aprender algo diferente también es avanzar hacia tu objetivo.</p>
-        </div>
       </>
     );
   }
@@ -1313,41 +1382,16 @@ function App() {
           ))}
         </div>
         <div className="project-grid">
-          {[
-            {
-              name: "Forma — mi primer sitio web",
-              description: "Una web editorial responsive para un estudio de arquitectura.",
-              color: "green",
-              tech: "HTML · CSS · JavaScript",
-              label: "FORMA",
-              date: "28 abr 2025",
-            },
-            {
-              name: "Focus — espacio para tus ideas",
-              description: "Una aplicación para organizar tareas con intención.",
-              color: "purple",
-              tech: "React · CSS · Vite",
-              label: "Less, but better.",
-              date: "07 may 2025",
-            },
-            {
-              name: "Mi portafolio personal",
-              description: "Un lugar para presentar mis proyectos y mi evolución.",
-              color: "blue",
-              tech: "HTML · CSS · Figma",
-              label: "Hello, I’m Alex.",
-              date: "11 may 2025",
-            },
-          ].map((p, i) => (
+          {completedProjects.map((p, i) => (
             <article className={`project-card project-${i}`} key={p.name}>
-              <button className={`project-cover ${p.color}`} onClick={() => setModal(p.name)}>
+              <button className={`project-cover ${p.cover.color}`} onClick={() => setModal(p.name)}>
                 <div className="mock-browser">
                   <div className="browser-dots">● ● ●</div>
                   <div className="mock-content">
                     <small>
-                      {i === 0 ? "ARQUITECTURA CON INTENCIÓN" : "A LITTLE SPACE TO CREATE"}
+                      {p.cover.kicker}
                     </small>
-                    <strong>{p.label}</strong>
+                    <strong>{p.cover.label}</strong>
                     <span className="mock-sculpture" />
                     <span>Ideas con espacio para crecer. ↗</span>
                   </div>
@@ -1365,11 +1409,11 @@ function App() {
                 </div>
                 <h2>{p.name}</h2>
                 <p>{p.description}</p>
-                <span className="project-tech">{p.tech}</span>
+                <span className="project-tech">{p.tech.join(" · ")}</span>
                 <div className="row between">
                   <span className="muted">
                     Demuestra:{" "}
-                    {i === 1 ? "React · Resolución de problemas" : "HTML y CSS · Diseño responsive"}
+                    {p.demonstrates}
                   </span>
                   <button className="text-button" onClick={() => setModal(p.name)}>
                     Ver proyecto <ArrowUpRight size={15} />
@@ -1442,13 +1486,13 @@ function App() {
             <h3>PROYECTOS SELECCIONADOS</h3>
             <h4>Forma — sitio web de arquitectura</h4>
             <p>
-              Diseño y desarrollo de un sitio responsive con HTML, CSS y JavaScript. Abril 2025.
+              Diseño y desarrollo de un sitio responsive con HTML, CSS y JavaScript. Abril 2026.
             </p>
             <h4>Focus — aplicación de productividad</h4>
-            <p>Aplicación de tareas construida con React. Mayo 2025.</p>
+            <p>Aplicación de tareas construida con React. Mayo 2026.</p>
             <h3>FORMACIÓN Y CERTIFICACIONES</h3>
             <h4>Fundamentos de desarrollo web · SkillPath</h4>
-            <p>HTML, CSS, JavaScript y diseño responsive · 2025</p>
+            <p>HTML, CSS, JavaScript y diseño responsive · 2026</p>
             <h3>TECNOLOGÍAS</h3>
             <p>HTML5 · CSS3 · JavaScript · React · Figma · Git</p>
             <footer>
@@ -1510,8 +1554,11 @@ function App() {
                 <span className="nav-label discover-label">COMUNIDAD Y OPORTUNIDADES</span>
               )}
               <button
-                className={`nav-item ${page === item.name ? "active" : ""}`}
-                onClick={() => go(item.name)}
+                className={`nav-item ${
+                  page === item.name || (item.name === "Certificaciones" && isCertPage(page)) ? "active" : ""
+                }`}
+                aria-current={page === navTarget(item.name) ? "page" : undefined}
+                onClick={() => go(navTarget(item.name))}
               >
                 <item.icon size={18} strokeWidth={1.65} />
                 <span>{item.name}</span>
@@ -1524,16 +1571,6 @@ function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-promo">
-            <span className="promo-icon">
-              <Sparkles size={19} />
-            </span>
-            <b>Tu curiosidad no tiene límites.</b>
-            <p>Tu próximo gran paso te está esperando.</p>
-            <button onClick={() => go("Explorar aprendizaje")}>
-              Descubre algo nuevo <ArrowUpRight size={15} />
-            </button>
-          </div>
           <button
             className={`nav-item ${page === "Configuración" ? "active" : ""}`}
             onClick={() => go("Configuración")}
@@ -1569,14 +1606,12 @@ function App() {
           <div className="header-tools">
             <button
               className="header-search"
-              onClick={() => {
-                go("Explorar aprendizaje");
-                setSearch("");
-              }}
+              aria-haspopup="dialog"
+              onClick={() => setPaletteOpen(true)}
             >
               <Search size={16} />
-              <span>Encuentra tu próximo paso</span>
-              <kbd>⌘ K</kbd>
+              <span>Buscar en SkillPath</span>
+              <kbd>{/Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘ K" : "Ctrl K"}</kbd>
             </button>
             <span className="header-divider" />
             <span className="streak">
@@ -1631,6 +1666,21 @@ function App() {
           )}
           {page === "Foro" && <Forum platform={platform} notify={notify} authorName={fullName} />}
           {page === "Eventos recomendados" && <Events platform={platform} notify={notify} />}
+          {isCertPage(page) && (
+            <div className="tabs cert-tabs" role="tablist" aria-label="Tipo de certificación">
+              {(["Certificaciones recomendadas", "Certificaciones afiliadas"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  role="tab"
+                  aria-selected={page === tab}
+                  className={page === tab ? "selected" : ""}
+                  onClick={() => setPage(tab)}
+                >
+                  {tab === "Certificaciones recomendadas" ? "Recomendadas" : "Afiliadas"}
+                </button>
+              ))}
+            </div>
+          )}
           {page === "Certificaciones afiliadas" && <AffiliatedCertifications />}
           {page === "Certificaciones recomendadas" && <RecommendedCertifications notify={notify} />}
           {page === "Configuración" && (
@@ -1648,10 +1698,10 @@ function App() {
                 </label>
                 <label>
                   Tu objetivo principal
-                  <select defaultValue="Diseñador de producto">
-                    <option>Diseñador de producto</option>
-                    <option>Desarrollador frontend</option>
-                    <option>Explorar nuevas habilidades</option>
+                  <select defaultValue={platform.profile?.goal ?? goalOptions[platform.profile?.area ?? "fullstack"][0]}>
+                    {goalOptions[platform.profile?.area ?? "fullstack"].map((goal) => (
+                      <option key={goal}>{goal}</option>
+                    ))}
                   </select>
                 </label>
                 <h3>Notificaciones de demostración</h3>
@@ -1690,14 +1740,12 @@ function App() {
             </>
           )}
           <footer className="main-footer">
-            <span>Hecho para el camino que estás construyendo.</span>
-            <span>
-              SkillPath © 2025 <span className="footer-dot">·</span> Un paso a la vez{" "}
-              <Leaf size={12} />
-            </span>
+            <span>Prototipo con datos de ejemplo.</span>
+            <span>SkillPath © {new Date().getFullYear()}</span>
           </footer>
         </main>
       </div>
+      {paletteOpen && <CommandPalette items={paletteItems()} onClose={() => setPaletteOpen(false)} />}
       {toast && (
         <div role="status" className="toast">
           <span>
@@ -1824,7 +1872,7 @@ function App() {
                       : modal === "HTML y CSS"
                         ? "Habilidad demostrada con dos proyectos prácticos. Has construido interfaces responsive y accesibles."
                         : modal === "Tu punto de partida"
-                          ? "Todo comenzó con tu curiosidad. Te uniste a SkillPath el 12 de abril de 2025."
+                          ? "Todo comenzó con tu curiosidad. Te uniste a SkillPath el 12 de abril de 2026."
                           : "Una conquista de tu camino. Este proyecto demuestra tus habilidades para transformar ideas en experiencias reales."}
                 </p>
                 <div className="modal-evidence">

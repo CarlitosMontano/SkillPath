@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { demoAccounts, initialCourseProgress, initialPosts, type Account, type AreaKey, type Post } from "./data";
+import { completedProjects, demoAccounts, initialCourseProgress, initialPosts, type Account, type AreaKey, type Post } from "./data";
 
 export type Session = { name: string; surname: string; email: string; isNew: boolean };
 export type Profile = { area: AreaKey; experience: string; goal: string; time: string };
@@ -17,15 +17,14 @@ const defaultPortfolio: PortfolioData = {
   bio: "Aprendo construyendo proyectos reales y comparto mi avance con la comunidad.",
   skills: ["HTML", "CSS", "JavaScript"],
   github: "",
-  projects: [
-    {
-      id: 1,
-      name: "Mi primera página personal",
-      description: "Página personal con HTML semántico, formulario de contacto e imágenes accesibles.",
-      tech: ["HTML", "CSS"],
-      repo: "",
-    },
-  ],
+  // Los mismos proyectos terminados que aparecen en «Mis proyectos».
+  projects: completedProjects.map((project, index) => ({
+    id: index + 1,
+    name: project.name,
+    description: project.description,
+    tech: project.tech,
+    repo: "",
+  })),
 };
 
 export function portfolioCompleteness(p: PortfolioData) {

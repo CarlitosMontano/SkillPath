@@ -66,7 +66,7 @@ export function HomeOverview({ platform, go, continueCourse }: { platform: Platf
             <b>{currentProgress}%</b>
           </div>
           <p className="sp-next"><CheckCircle2 size={14} aria-hidden="true" /> Próxima actividad: <b>{nextModule}</b></p>
-          <button className="btn" onClick={() => continueCourse(current.id)}>Continuar aprendiendo <ArrowRight size={15} /></button>
+          <button className="btn secondary" onClick={() => continueCourse(current.id)}>Ir al curso <ArrowRight size={15} /></button>
         </article>
 
         <article className="panel sp-ov-card">

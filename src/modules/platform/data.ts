@@ -160,3 +160,42 @@ export const demoAccounts: Account[] = [
   { name: "Alex", surname: "Morgan", email: "estudiante@skillpath.app", password: "SkillPath2026", isNew: false },
   { name: "Sam", surname: "Rivera", email: "nuevo@skillpath.app", password: "Bienvenida2026", isNew: true },
 ];
+
+/**
+ * Proyectos terminados del estudiante de ejemplo. Fuente única para
+ * «Mis proyectos», el portafolio y las estadísticas de Inicio.
+ */
+export type CompletedProject = {
+  name: string;
+  description: string;
+  tech: string[];
+  date: string;
+  demonstrates: string;
+  cover: { color: "green" | "purple" | "blue"; kicker: string; label: string };
+};
+export const completedProjects: CompletedProject[] = [
+  {
+    name: "Forma — mi primer sitio web",
+    description: "Una web editorial responsive para un estudio de arquitectura.",
+    tech: ["HTML", "CSS", "JavaScript"],
+    date: "28 abr 2026",
+    demonstrates: "HTML y CSS · Diseño responsive",
+    cover: { color: "green", kicker: "ARQUITECTURA CON INTENCIÓN", label: "FORMA" },
+  },
+  {
+    name: "Focus — espacio para tus ideas",
+    description: "Una aplicación para organizar tareas con intención.",
+    tech: ["React", "CSS", "Vite"],
+    date: "07 may 2026",
+    demonstrates: "React · Resolución de problemas",
+    cover: { color: "purple", kicker: "UN ESPACIO PARA CREAR", label: "Menos, pero mejor." },
+  },
+  {
+    name: "Mi portafolio personal",
+    description: "Un lugar para presentar mis proyectos y mi evolución.",
+    tech: ["HTML", "CSS", "Figma"],
+    date: "11 may 2026",
+    demonstrates: "HTML y CSS · Diseño responsive",
+    cover: { color: "blue", kicker: "UN ESPACIO PARA CREAR", label: "Hola, soy Alex." },
+  },
+];

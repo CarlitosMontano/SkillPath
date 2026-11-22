@@ -89,7 +89,7 @@ export function WelcomeChat({ name, profile, onFinish }: { name: string; profile
       <div className="page-heading">
         <span className="eyebrow">GUÍA DE BIENVENIDA</span>
         <div className="row between">
-          <h1>Encuentra tu camino y construye tu futuro.</h1>
+          <h1>Elijamos juntos por dónde empezar.</h1>
           <button className="btn secondary" onClick={restart}>
             <RotateCcw size={15} /> Empezar de nuevo
           </button>
