@@ -146,7 +146,7 @@ export function AreasCourses({ platform, notify, openLearningRoute, initialCours
                   <small>{progress}%</small>
                 </div>
                 {status === "Próximamente" ? (
-                  <button className="btn secondary" disabled>Próximamente</button>
+                  <p className="sp-soon-note">Disponible próximamente</p>
                 ) : status === "En progreso" ? (
                   <button className="btn" onClick={() => setOpenId(c.id)}>Continuar curso <ArrowRight size={15} /></button>
                 ) : (

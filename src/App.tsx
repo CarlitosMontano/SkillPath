@@ -45,12 +45,14 @@ import {
   Award,
 } from "lucide-react";
 import { Bot, GraduationCap, LogOut, MessagesSquare } from "lucide-react";
-import { LearningRoutes, readFullstackProgress, UX_ROUTE_PROGRESS } from "./modules/learning/LearningRoutes";
-import { usePlatformState } from "./modules/platform/state";
+import { LearningRoutes, readFullstackProgress, readLessonsPassed, readNextLessonLabel, UX_ROUTE_PROGRESS } from "./modules/learning/LearningRoutes";
+import { evidenceItems, usePlatformState, type Session } from "./modules/platform/state";
+import { MyProjects } from "./modules/platform/MyProjects";
+import { repoLanguages } from "./modules/platform/github";
+import type { Track } from "./modules/platform/career";
 import {
   affiliatedCerts,
   areas,
-  completedProjects,
   courses,
   events,
   goalOptions,
@@ -60,8 +62,7 @@ import {
 } from "./modules/platform/data";
 import { CommandPalette, type PaletteItem } from "./modules/platform/CommandPalette";
 import { applyTheme, initialTheme, type Theme } from "./modules/platform/theme";
-import { Moon, Sun } from "lucide-react";
-import { Login } from "./modules/platform/Login";
+import { Database, Megaphone, Moon, Sun } from "lucide-react";
 import { WelcomeChat } from "./modules/platform/WelcomeChat";
 import { HomeOverview, type PlatformPage } from "./modules/platform/HomeOverview";
 import { AreasCourses } from "./modules/platform/AreasCourses";
@@ -175,63 +176,46 @@ const routes = [
     icon: BriefcaseBusiness,
     lessons: 22,
   },
-];
-const skills = [
   {
-    name: "Diseño de interfaces",
-    state: "En aprendizaje",
-    level: "Básico",
-    route: "Diseño de Producto UI/UX",
-    tests: "2 de 4",
-    projects: 0,
-    icon: Palette,
+    title: "Ciberseguridad esencial",
+    category: "Ciberseguridad",
+    description: "Protege tus cuentas, tus datos y los sistemas con los que trabajas.",
+    level: "Principiante",
+    progress: 0,
+    time: "6 horas",
+    next: "Amenazas más comunes",
+    color: "blue",
+    icon: ShieldCheck,
+    lessons: 18,
   },
   {
-    name: "HTML y CSS",
-    state: "Demostrada",
-    level: "Intermedio",
-    route: "Desarrollador/a Full Stack con IA",
-    tests: "4 de 4",
-    projects: 2,
-    icon: Code2,
+    title: "Análisis de datos con hojas de cálculo",
+    category: "Datos",
+    description: "Ordena, analiza y presenta datos para tomar mejores decisiones.",
+    level: "Principiante",
+    progress: 0,
+    time: "8 horas",
+    next: "Datos limpios desde el inicio",
+    color: "green",
+    icon: Database,
+    lessons: 24,
   },
   {
-    name: "Investigación de usuarios",
-    state: "Desarrollada",
-    level: "Básico",
-    route: "Diseño de Producto UI/UX",
-    tests: "3 de 3",
-    projects: 0,
-    icon: Users,
-  },
-  {
-    name: "JavaScript",
-    state: "Desarrollada",
-    level: "Intermedio",
-    route: "Desarrollador/a Full Stack con IA",
-    tests: "5 de 5",
-    projects: 0,
-    icon: Zap,
-  },
-  {
-    name: "React",
-    state: "En aprendizaje",
-    level: "Básico",
-    route: "Desarrollador/a Full Stack con IA",
-    tests: "1 de 4",
-    projects: 0,
-    icon: Code2,
-  },
-  {
-    name: "Resolución de problemas",
-    state: "Demostrada",
-    level: "Intermedio",
-    route: "Pensamiento creativo",
-    tests: "3 de 3",
-    projects: 1,
-    icon: BrainCircuit,
+    title: "Marketing digital desde cero",
+    category: "Negocios",
+    description: "Atrae a las personas correctas y mide qué funciona en internet.",
+    level: "Principiante",
+    progress: 0,
+    time: "6 horas",
+    next: "Conoce a tu público",
+    color: "yellow",
+    icon: Megaphone,
+    lessons: 20,
   },
 ];
+type SkillState = "Por desarrollar" | "En aprendizaje" | "Desarrollada" | "Demostrada";
+type Skill = { name: string; state: SkillState; level: string; route: string; tests: string; projects: number; icon: typeof Code2 };
+const skillStates: SkillState[] = ["Por desarrollar", "En aprendizaje", "Desarrollada", "Demostrada"];
 function Button({
   children,
   onClick,
@@ -262,8 +246,9 @@ function Progress({ value }: { value: number }) {
     </div>
   );
 }
-function App() {
-  const [page, setPage] = useState<Page>("Inicio");
+function App({ session, onLogout }: { session: Session; onLogout: () => void }) {
+  // Usuario nuevo en cada inicio de sesión: empieza en la guía de bienvenida.
+  const [page, setPage] = useState<Page>("Guía de bienvenida");
   const [mobileMenu, setMobileMenu] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
@@ -277,18 +262,16 @@ function App() {
   const [lessonTab, setLessonTab] = useState("Lección");
   const [notes, setNotes] = useState("");
   const [exercise, setExercise] = useState("");
-  const [goals, setGoals] = useState([true, true, true, true, false]);
+  const [goals, setGoals] = useState([false, false, false, false, false]);
   const [period, setPeriod] = useState("Mes");
   const [skillFilter, setSkillFilter] = useState("Todas");
-  const platform = usePlatformState();
+  const platform = usePlatformState(session);
   const [courseToOpen, setCourseToOpen] = useState<string | null>(null);
   const [settings, setSettings] = useState([true, true, false]);
-  const [userName, setUserName] = useState("Alex");
-  const [surname, setSurname] = useState("Morgan");
-  const [headline, setHeadline] = useState("Desarrollador/a web en formación");
-  const [bio, setBio] = useState(
-    "Aprendo desarrollo web construyendo proyectos reales: interfaces claras, accesibles y con propósito.",
-  );
+  // El nombre lo pide la guía de bienvenida.
+  const [userName, setUserName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [reflections, setReflections] = useState<{ text: string; at: number }[]>([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(initialTheme);
   useEffect(() => applyTheme(theme), [theme]);
@@ -296,7 +279,6 @@ function App() {
   // Modo enfoque: lecciones y evaluaciones a pantalla completa, sin barra lateral.
   const [learningFocus, setLearningFocus] = useState(false);
   const [learningKey, setLearningKey] = useState(0);
-  const [drafts, setDrafts] = useState<{ name: string; description: string }[]>([]);
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
     const dialog = document.querySelector<HTMLElement>('[role="dialog"]');
@@ -343,13 +325,14 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const fullName = `${userName} ${surname}`.trim();
-  const initials = (userName.charAt(0) + (surname.charAt(0) || userName.charAt(1))).toUpperCase();
+  const initials = (userName.charAt(0) + (surname.charAt(0) || userName.charAt(1))).toUpperCase() || "SP";
   const todayLabel = (() => {
     const text = new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     return text.charAt(0).toUpperCase() + text.slice(1);
   })();
+  // Cerrar sesión desmonta la app: la próxima vez empieza como usuario nuevo.
   const logout = () => {
-    platform.logout();
+    onLogout();
     setModal(null);
     setMobileMenu(false);
     setPage("Inicio");
@@ -369,6 +352,9 @@ function App() {
     ["El poder de una buena historia", "Conoce a tu audiencia", "Presenta tu idea"],
     ["Tu punto de partida", "Crea tu presupuesto", "Un fondo de emergencia"],
     ["Encontrar un problema real", "Validar tu idea", "Tu propuesta de valor"],
+    ["Amenazas más comunes", "Contraseñas y doble factor", "Navegar con seguridad"],
+    ["Datos limpios desde el inicio", "Tablas dinámicas", "Gráficos que se entienden"],
+    ["Conoce a tu público", "Contenido que conecta", "Medir resultados"],
   ][activeRoute];
   const extraLesson = [
     null,
@@ -409,6 +395,33 @@ function App() {
       exercise:
         "Elige un problema cotidiano. Describe quién lo tiene y redacta tres preguntas abiertas para entenderlo mejor.",
     },
+    {
+      title: "La seguridad empieza por los hábitos",
+      intro:
+        "La mayoría de los incidentes no empiezan con un ataque sofisticado, sino con un correo engañoso o una contraseña repetida. Reconocer las amenazas comunes es la primera defensa.",
+      principle:
+        "Desconfía de los mensajes urgentes que piden datos o pagos, verifica el remitente y el enlace antes de hacer clic, y usa una contraseña distinta para cada servicio.",
+      exercise:
+        "Revisa tres cuentas que uses a diario. Anota si tienen contraseña única y doble factor, y escribe qué cambiarías primero y por qué.",
+    },
+    {
+      title: "Un buen análisis empieza con datos ordenados",
+      intro:
+        "Antes de calcular o graficar, los datos deben estar limpios: una fila por registro, una columna por variable y sin celdas combinadas. Así cada fórmula funciona como esperas.",
+      principle:
+        "Elimina duplicados, unifica formatos de fecha y texto, y separa los datos de los cálculos. Documenta cada cambio para que otra persona pueda repetir tu análisis.",
+      exercise:
+        "Toma una lista de gastos o compras de un mes. Organízala en una tabla limpia y escribe tres preguntas que te gustaría responder con esos datos.",
+    },
+    {
+      title: "Habla con quien realmente te escucha",
+      intro:
+        "El marketing digital funciona cuando el mensaje llega a las personas adecuadas. Antes de publicar, define quién es tu público, qué necesita y dónde pasa su tiempo en internet.",
+      principle:
+        "Crea un perfil sencillo de tu público: edad, intereses, problemas y canales que usa. Cada publicación debe responder a una necesidad concreta de ese perfil.",
+      exercise:
+        "Elige un proyecto o negocio real. Describe a su público ideal en cinco líneas y propone dos ideas de contenido pensadas para esa persona.",
+    },
   ][activeRoute];
   const totalDone = completed.length;
   // Las dos rutas inscritas leen su progreso de «Mis rutas» para que los números coincidan.
@@ -418,6 +431,46 @@ function App() {
       : Math.min(100, routes[i].progress + completed.filter((k) => k.startsWith(`${i}-`)).length * 4);
   /** Las rutas 0 y 1 viven en «Mis rutas»; el resto abre su lección de muestra. */
   const continueRoute = (index: number) => (index <= 1 ? go("Mis rutas") : openLesson(index));
+
+  // ── Datos derivados del usuario (empiezan en cero en cada sesión) ──
+  const track: Track | undefined = platform.profile?.track;
+  const evidence = evidenceItems(platform);
+  const languages = repoLanguages(platform.github);
+  const lessonsPassed = readLessonsPassed();
+  const lessonsDone = lessonsPassed + totalDone;
+  const hasLang = (...names: string[]) => languages.some((l) => names.includes(l));
+  const reposWith = (...names: string[]) => (platform.github?.repos ?? []).filter((r) => r.language && names.includes(r.language)).length;
+  const fullstackRoute = "Desarrollador/a Full Stack con IA";
+  const skills: Skill[] =
+    track === "tech"
+      ? [
+          { name: "HTML y CSS", state: hasLang("HTML", "CSS") ? "Demostrada" : lessonsPassed >= 5 ? "Desarrollada" : lessonsPassed > 0 ? "En aprendizaje" : "Por desarrollar", level: "Básico", route: fullstackRoute, tests: `${Math.min(lessonsPassed, 5)} de 5`, projects: reposWith("HTML", "CSS"), icon: Code2 },
+          { name: "JavaScript", state: hasLang("JavaScript", "TypeScript") ? "Demostrada" : "Por desarrollar", level: "Básico", route: fullstackRoute, tests: "0 de 6", projects: reposWith("JavaScript", "TypeScript"), icon: Zap },
+          { name: "Git y GitHub", state: evidence.length ? "Demostrada" : platform.github ? "En aprendizaje" : "Por desarrollar", level: "Básico", route: fullstackRoute, tests: "0 de 3", projects: evidence.length, icon: GitBranch },
+          { name: "React y TypeScript", state: hasLang("TypeScript") ? "En aprendizaje" : "Por desarrollar", level: "Intermedio", route: fullstackRoute, tests: "0 de 5", projects: reposWith("TypeScript"), icon: Layers3 },
+          { name: "Bases de datos y SQL", state: hasLang("PLpgSQL", "TSQL", "SQL") ? "Demostrada" : "Por desarrollar", level: "Básico", route: fullstackRoute, tests: "0 de 5", projects: reposWith("PLpgSQL", "TSQL", "SQL"), icon: Database },
+          { name: "Programación backend", state: hasLang("Python", "Java", "Go", "Ruby", "C#", "PHP") ? "Demostrada" : "Por desarrollar", level: "Intermedio", route: fullstackRoute, tests: "0 de 5", projects: reposWith("Python", "Java", "Go", "Ruby", "C#", "PHP"), icon: Database },
+          { name: "IA aplicada al desarrollo", state: "Por desarrollar", level: "Básico", route: "IA para potenciar tus ideas", tests: "0 de 3", projects: 0, icon: BrainCircuit },
+          { name: "Resolución de problemas", state: evidence.length ? "En aprendizaje" : "Por desarrollar", level: "Básico", route: fullstackRoute, tests: "0 de 3", projects: 0, icon: Target },
+        ]
+      : [
+          { name: "Organización de proyectos", state: evidence.length ? "Demostrada" : "Por desarrollar", level: "Básico", route: "De idea a negocio", tests: "0 de 3", projects: evidence.length, icon: FolderKanban },
+          { name: "Comunicación escrita", state: platform.folder.some((i) => i.kind === "document" || i.kind === "pdf") ? "Demostrada" : "Por desarrollar", level: "Básico", route: "Comunica con impacto", tests: "0 de 4", projects: platform.folder.filter((i) => i.kind === "document" || i.kind === "pdf").length, icon: FileText },
+          { name: "Presentaciones efectivas", state: evidence.length >= 3 ? "Demostrada" : "Por desarrollar", level: "Básico", route: "Comunica con impacto", tests: "0 de 3", projects: evidence.length >= 3 ? evidence.length : 0, icon: MessageCircle },
+          { name: "Diseño visual", state: platform.folder.some((i) => i.kind === "image") ? "Demostrada" : "Por desarrollar", level: "Básico", route: "Diseño de Producto UI/UX", tests: "0 de 3", projects: platform.folder.filter((i) => i.kind === "image").length, icon: Palette },
+          { name: "Hojas de cálculo", state: "Por desarrollar", level: "Básico", route: "Análisis de datos con hojas de cálculo", tests: "0 de 5", projects: 0, icon: Database },
+          { name: "Finanzas personales", state: "Por desarrollar", level: "Básico", route: "Tus finanzas, bajo control", tests: "0 de 4", projects: 0, icon: Wallet },
+          { name: "Herramientas digitales con IA", state: "Por desarrollar", level: "Básico", route: "IA para potenciar tus ideas", tests: "0 de 3", projects: 0, icon: BrainCircuit },
+          { name: "Pensamiento crítico", state: "Por desarrollar", level: "Básico", route: "De idea a negocio", tests: "0 de 3", projects: 0, icon: Target },
+        ];
+  const skillsWithProgress = skills.filter((s) => s.state !== "Por desarrollar").length;
+  const demonstratedSkills = skills.filter((s) => s.state === "Demostrada");
+  /** Días con actividad: hoy cuenta desde que completas la guía. */
+  const activeDays = platform.profile ? 1 : 0;
+  const routeForSkill = (skill: Skill) => {
+    const index = routes.findIndex((r) => r.title === skill.route);
+    return index === -1 ? 1 : index;
+  };
 
   /** Todo lo que se puede encontrar desde el buscador global (Ctrl/⌘ K). */
   const paletteItems = (): PaletteItem[] => [
@@ -448,11 +501,11 @@ function App() {
         go("Áreas y cursos");
       },
     })),
-    ...completedProjects.map((project) => ({
-      id: `project-${project.name}`,
-      group: "Proyectos",
-      label: project.name,
-      hint: project.tech.join(" · "),
+    ...evidence.map((item) => ({
+      id: `project-${item.id}`,
+      group: "Mis proyectos",
+      label: item.title,
+      hint: item.meta,
       icon: FolderKanban,
       run: () => go("Mis proyectos"),
     })),
@@ -524,7 +577,7 @@ function App() {
               </div>
               <Progress value={currentProgress(index)} />
               <div className="next-lesson">
-                <Play size={12} /> {route.next}
+                <Play size={12} /> {index === 1 ? readNextLessonLabel() : route.next}
               </div>
             </>
           )}
@@ -563,18 +616,24 @@ function App() {
     );
   }
   function GrowthMap() {
-    const nodes = [
-      { icon: Flag, name: "Tu punto de partida", sub: "Un gran primer paso", style: "done" },
-      { icon: Code2, name: "HTML y CSS", sub: "Habilidad demostrada", style: "done" },
-      {
-        icon: FolderKanban,
-        name: "Mi primer sitio web",
-        sub: "Proyecto completado",
-        style: "done",
-      },
-      { icon: Palette, name: "Diseño UI/UX", sub: `Estás aquí · ${UX_ROUTE_PROGRESS}%`, style: "current" },
-      { icon: Trophy, name: "Tu primer producto", sub: "Tu próximo gran logro", style: "locked" },
+    // Hitos reales: se completan a medida que la persona avanza.
+    const reached = [!!platform.profile, lessonsDone > 0, evidence.length > 0, demonstratedSkills.length > 0, false];
+    const currentIndex = reached.indexOf(false);
+    const milestones = [
+      { icon: Flag, name: "Tu punto de partida", done: "Guía completada", todo: "Completa la guía" },
+      { icon: BookOpen, name: "Tu primera lección", done: `${lessonsDone} ${lessonsDone === 1 ? "lección aprobada" : "lecciones aprobadas"}`, todo: "Aprueba una lección" },
+      { icon: FolderKanban, name: track === "tech" ? "Tu portafolio en GitHub" : "Tu primer trabajo guardado", done: `${evidence.length} en tu portafolio`, todo: track === "tech" ? "Conecta tus repositorios" : "Sube un archivo" },
+      { icon: ShieldCheck, name: "Habilidad demostrada", done: demonstratedSkills[0]?.name ?? "", todo: "Respáldala con un proyecto" },
+      { icon: Trophy, name: "Tu primer empleo", done: "", todo: "Tu gran meta" },
     ];
+    const nodes = milestones.map((m, i) => ({
+      icon: m.icon,
+      name: m.name,
+      sub: reached[i] ? m.done : i === currentIndex ? `Estás aquí · ${m.todo}` : m.todo,
+      style: reached[i] ? "done" : i === currentIndex ? "current" : "locked",
+    }));
+    const segments = ["C160 62 170 10 285 18", "S420 90 500 62", "S650 0 715 20", "S850 85 930 58"];
+    const walked = `M70 62 ${segments.slice(0, Math.max(0, currentIndex === -1 ? 4 : currentIndex)).join(" ")}`;
     return (
       <section className="growth-map panel">
         <div className="row between">
@@ -595,18 +654,15 @@ function App() {
               strokeWidth="2"
               strokeDasharray="5 6"
             />
-            <path
-              d="M70 62 C160 62 170 10 285 18 S420 90 500 62 S650 0 715 20"
-              fill="none"
-              style={{ stroke: "var(--blue-300)" }}
-              strokeWidth="2"
-            />
+            {currentIndex !== 0 && (
+              <path d={walked} fill="none" style={{ stroke: "var(--blue-300)" }} strokeWidth="2" />
+            )}
           </svg>
           {nodes.map((node, i) => (
             <button
               key={node.name}
               className={`map-node node-${i} ${node.style}`}
-              onClick={() => (i === 3 ? continueRoute(0) : setModal(node.name))}
+              onClick={() => setModal(node.name)}
             >
               <span className="node-icon">
                 <node.icon size={22} strokeWidth={1.7} />
@@ -652,14 +708,16 @@ function App() {
         <p>
           {goals.every(Boolean)
             ? "Una semana de avances. Tu constancia cuenta."
-            : "Vas muy bien. Te falta un último paso para llegar a tu meta."}
+            : goals.some(Boolean)
+              ? `Vas bien: te ${5 - goals.filter(Boolean).length === 1 ? "falta 1 objetivo" : `faltan ${5 - goals.filter(Boolean).length} objetivos`} para tu meta.`
+              : "Tu semana empieza hoy. Marca tus objetivos a medida que los cumplas."}
         </p>
         <div className="week-days">
           {["L", "M", "X", "J", "V", "S", "D"].map((d, i) => (
             <div key={i}>
               <span>{d}</span>
               <i className={i < goals.filter(Boolean).length ? "active-day" : ""}>
-                {i < goals.filter(Boolean).length ? <Check size={13} /> : i + 12}
+                {i < goals.filter(Boolean).length ? <Check size={13} /> : ""}
               </i>
             </div>
           ))}
@@ -774,31 +832,31 @@ function App() {
             },
             {
               icon: BookOpen,
-              value: String(48 + totalDone),
+              value: String(lessonsDone).padStart(2, "0"),
               label: "Lecciones completadas",
-              detail: "+8 esta semana",
+              detail: lessonsDone ? "Aprobadas con evaluación" : "Tu primera te espera",
               color: "purple",
             },
             {
               icon: Layers3,
               // Mismas cifras que «Mis habilidades» y «Mis proyectos».
-              value: String(skills.length).padStart(2, "0"),
-              label: "Habilidades desarrolladas",
-              detail: `${skills.filter((s) => s.state === "Demostrada").length} demostradas`,
+              value: String(skillsWithProgress).padStart(2, "0"),
+              label: "Habilidades en marcha",
+              detail: `${demonstratedSkills.length} demostradas de ${skills.length}`,
               color: "green",
             },
             {
               icon: FolderKanban,
-              value: String(completedProjects.length).padStart(2, "0"),
-              label: "Proyectos terminados",
-              detail: "También en tu portafolio",
+              value: String(evidence.length).padStart(2, "0"),
+              label: track === "tech" ? "Repositorios" : "Trabajos guardados",
+              detail: track === "tech" ? (platform.github ? `@${platform.github.login}` : "Conecta GitHub") : "En tu carpeta personal",
               color: "yellow",
             },
             {
               icon: Flame,
-              value: "07",
+              value: String(activeDays).padStart(2, "0"),
               label: "Días de actividad",
-              detail: "Tu mejor racha: 12 días",
+              detail: activeDays ? "Empezaste hoy" : "Completa la guía para empezar",
               color: "orange",
             },
           ].map((s) => (
@@ -810,7 +868,7 @@ function App() {
                     ? "Mis rutas"
                     : s.label.includes("Habilidades")
                       ? "Mis habilidades"
-                      : s.label.includes("Proyectos")
+                      : s.label.includes("Repositorios") || s.label.includes("Trabajos")
                         ? "Mis proyectos"
                         : "Mi progreso",
                 )
@@ -884,6 +942,8 @@ function App() {
             "Negocios",
             "Finanzas personales",
             "Comunicación",
+            "Ciberseguridad",
+            "Datos",
           ].map((c) => (
             <button
               key={c}
@@ -1169,13 +1229,25 @@ function App() {
     );
   }
   function Growth() {
-    const goalNames = [
-      "Completar 3 lecciones de UX/UI",
-      "Practicar React durante 30 minutos",
-      "Leer un recurso de accesibilidad",
-      "Escribir una reflexión de aprendizaje",
-      "Avanzar en mi proyecto personal",
-    ];
+    const goalNames =
+      track === "tech"
+        ? [
+            "Aprobar mi primera lección de HTML",
+            "Revisar el README de uno de mis repositorios",
+            "Practicar 30 minutos con Git",
+            "Escribir una reflexión de aprendizaje",
+            "Comentar una publicación del foro",
+          ]
+        : [
+            "Subir mi primer trabajo a la carpeta",
+            "Completar una lección de mi ruta",
+            "Explorar dos certificaciones recomendadas",
+            "Escribir una reflexión de aprendizaje",
+            "Comentar una publicación del foro",
+          ];
+    // Actividad: solo cuenta hoy (último día del periodo) si ya hubo actividad.
+    const cells = period === "Año" ? 364 : period === "Mes" ? 140 : 35;
+    const todayLevel = Math.min(4, (platform.profile ? 1 : 0) + lessonsDone + Math.min(2, evidence.length) + goals.filter(Boolean).length);
     return (
       <>
         <SectionHeading
@@ -1186,13 +1258,13 @@ function App() {
         <div className="growth-summary">
           <div>
             <Flame size={25} />
-            <strong>7 días</strong>
-            <span>aprendiendo sin parar</span>
+            <strong>{activeDays} {activeDays === 1 ? "día" : "días"}</strong>
+            <span>de actividad</span>
           </div>
           <div>
             <Clock3 size={25} />
-            <strong>12,5 h</strong>
-            <span>dedicadas este mes</span>
+            <strong>{evidence.length}</strong>
+            <span>{track === "tech" ? "repositorios en tu portafolio" : "trabajos en tu carpeta"}</span>
           </div>
           <div>
             <Target size={25} />
@@ -1201,7 +1273,7 @@ function App() {
           </div>
           <div>
             <Trophy size={25} />
-            <strong>{48 + totalDone}</strong>
+            <strong>{lessonsDone}</strong>
             <span>lecciones completadas</span>
           </div>
         </div>
@@ -1232,24 +1304,22 @@ function App() {
             <span>{period === "Año" ? "Diciembre" : "Domingo"}</span>
           </div>
           <div className={`activity-grid period-${period}`}>
-            {Array.from(
-              { length: period === "Año" ? 364 : period === "Mes" ? 140 : 35 },
-              (_, i) => (
+            {Array.from({ length: cells }, (_, i) => {
+              const level = i === cells - 1 ? todayLevel : 0;
+              return (
                 <div
                   key={i}
-                  className={`heat heat-${(i * 7 + Math.floor(i / 3)) % 5}`}
-                  title={`${(i % 7) + 1} actividades educativas · Día ${i + 1}`}
+                  className={`heat heat-${level}`}
+                  title={i === cells - 1 ? `Hoy · ${level ? "con actividad" : "sin actividad todavía"}` : "Sin actividad"}
                 />
-              ),
-            )}
+              );
+            })}
           </div>
           <div className="row between activity-foot">
             <span>
-              {period === "Año"
-                ? "216 días de aprendizaje este año"
-                : period === "Mes"
-                  ? "18 días activos este mes"
-                  : "7 días activos esta semana"}
+              {activeDays
+                ? `${activeDays} día activo ${period === "Año" ? "este año" : period === "Mes" ? "este mes" : "esta semana"}: tu historial empieza hoy`
+                : "Completa la guía de bienvenida para empezar tu historial"}
             </span>
             <span className="row">
               Menos{" "}
@@ -1264,7 +1334,10 @@ function App() {
           <section className="panel goal-list">
             <span className="eyebrow">EL SIGUIENTE PASO</span>
             <h2>Objetivos de esta semana</h2>
-            <p>{goals.filter(Boolean).length} de 5 completados. Tu esfuerzo se nota.</p>
+            <p>
+              {goals.filter(Boolean).length} de 5 completados.{" "}
+              {goals.some(Boolean) ? "Tu esfuerzo se nota." : "Márcalos a medida que los cumplas."}
+            </p>
             {goalNames.map((name, i) => (
               <button
                 key={name}
@@ -1286,9 +1359,27 @@ function App() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Algo que aprendí, algo que me costó, algo que quiero intentar…"
             />
-            <Button secondary onClick={() => notify("Reflexión guardada durante esta sesión.")}>
+            <Button
+              secondary
+              disabled={notes.trim().length < 5}
+              onClick={() => {
+                setReflections((old) => [{ text: notes.trim(), at: Date.now() }, ...old]);
+                setNotes("");
+                notify("Reflexión guardada. La verás debajo durante esta sesión.");
+              }}
+            >
               Guardar reflexión <Check size={16} />
             </Button>
+            {reflections.length > 0 && (
+              <ul className="sp-reflections">
+                {reflections.map((r) => (
+                  <li key={r.at}>
+                    <small className="muted">{new Date(r.at).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}</small>
+                    <p>{r.text}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
         <GrowthMap />
@@ -1305,6 +1396,7 @@ function App() {
         />
         <div className="skill-explainer">
           {[
+            ["Por desarrollar", "Aún no empiezas: es tu siguiente oportunidad.", Compass],
             ["En aprendizaje", "Estás explorando y adquiriendo conocimientos.", BookOpen],
             ["Desarrollada", "Has superado las evaluaciones de la habilidad.", ShieldCheck],
             ["Demostrada", "Un proyecto real respalda lo que sabes hacer.", Trophy],
@@ -1320,13 +1412,14 @@ function App() {
           })}
         </div>
         <div className="filter-chips">
-          {["Todas", "En aprendizaje", "Desarrollada", "Demostrada"].map((t) => (
+          {["Todas", ...skillStates].map((t) => (
             <button
               key={t}
               onClick={() => setSkillFilter(t)}
               className={skillFilter === t ? "selected" : ""}
+              aria-pressed={skillFilter === t}
             >
-              {t}
+              {t} ({t === "Todas" ? skills.length : skills.filter((s) => s.state === t).length})
             </button>
           ))}
         </div>
@@ -1336,11 +1429,11 @@ function App() {
             .map((s) => (
               <article className="panel skill-card" key={s.name}>
                 <div className="row between">
-                  <span className={`stat-icon ${s.state === "Demostrada" ? "green" : "purple"}`}>
+                  <span className={`stat-icon ${s.state === "Demostrada" ? "green" : s.state === "Por desarrollar" ? "blue" : "purple"}`}>
                     <s.icon size={22} />
                   </span>
                   <span
-                    className={`pill ${s.state === "Demostrada" ? "green-pill" : "purple-pill"}`}
+                    className={`pill ${s.state === "Demostrada" ? "green-pill" : s.state === "Por desarrollar" ? "sp-category" : "purple-pill"}`}
                   >
                     {s.state}
                   </span>
@@ -1365,11 +1458,9 @@ function App() {
                 </div>
                 <button
                   className="text-button"
-                  onClick={() =>
-                    s.projects ? go("Mis proyectos") : openLesson(s.name === "React" ? 1 : 0)
-                  }
+                  onClick={() => (s.projects ? go("Mis proyectos") : continueRoute(routeForSkill(s)))}
                 >
-                  {s.projects ? "Ver evidencias" : "Seguir desarrollando"}{" "}
+                  {s.projects ? "Ver evidencias" : s.state === "Por desarrollar" ? "Empezar a desarrollarla" : "Seguir desarrollando"}{" "}
                   <ArrowUpRight size={15} />
                 </button>
               </article>
@@ -1379,82 +1470,24 @@ function App() {
     );
   }
   function Projects() {
-    return (
-      <>
-        <SectionHeading
-          eyebrow="DE APRENDER A HACER"
-          title="Lo que construyes demuestra lo que sabes."
-          subtitle="Ideas que tomaron forma. Evidencias de todo lo que eres capaz de hacer."
-        >
-          <Button onClick={() => setModal("Nuevo proyecto")}>
-            <Plus size={16} /> Nuevo proyecto
-          </Button>
-        </SectionHeading>
-        <div className="draft-list">
-          {drafts.map((draft, i) => (
-            <article className="panel draft-card" key={i}>
-              <span className="pill purple-pill">Borrador · En construcción</span>
-              <h2>{draft.name}</h2>
-              <p>{draft.description}</p>
-              <span className="muted">
-                Todavía no hay habilidades demostradas: completa tu proyecto para aportar
-                evidencias.
-              </span>
-            </article>
-          ))}
-        </div>
-        <div className="project-grid">
-          {completedProjects.map((p, i) => (
-            <article className={`project-card project-${i}`} key={p.name}>
-              <button className={`project-cover ${p.cover.color}`} onClick={() => setModal(p.name)}>
-                <div className="mock-browser">
-                  <div className="browser-dots">● ● ●</div>
-                  <div className="mock-content">
-                    <small>
-                      {p.cover.kicker}
-                    </small>
-                    <strong>{p.cover.label}</strong>
-                    <span className="mock-sculpture" />
-                    <span>Ideas con espacio para crecer. ↗</span>
-                  </div>
-                </div>
-                <span className="project-open">
-                  <ArrowUpRight size={22} />
-                </span>
-              </button>
-              <div className="project-info">
-                <div className="row between">
-                  <span className="pill green-pill">
-                    <Check size={11} /> Completado
-                  </span>
-                  <span className="muted">{p.date}</span>
-                </div>
-                <h2>{p.name}</h2>
-                <p>{p.description}</p>
-                <span className="project-tech">{p.tech.join(" · ")}</span>
-                <div className="row between">
-                  <span className="muted">
-                    Demuestra:{" "}
-                    {p.demonstrates}
-                  </span>
-                  <button className="text-button" onClick={() => setModal(p.name)}>
-                    Ver proyecto <ArrowUpRight size={15} />
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </>
-    );
+    return <MyProjects platform={platform} notify={notify} openGuide={() => go("Guía de bienvenida")} />;
   }
   function CV() {
+    const career = platform.profile?.career;
+    const headline = platform.portfolio.headline || (career ? `Estudiante de ${career}` : "Tu titular profesional");
+    const bio =
+      platform.portfolio.bio ||
+      (career
+        ? `Estudiante de ${career} construyendo su camino profesional con SkillPath. Aprendo con rutas guiadas y documento mi trabajo en ${track === "tech" ? "GitHub" : "mi portafolio"}.`
+        : "Completa la guía de bienvenida para generar tu perfil.");
+    const cvSkills = [...new Set([...demonstratedSkills.map((s) => s.name), ...platform.portfolio.skills])];
+    const tools = track === "tech" ? [...languages, "Git", "GitHub"] : ["Herramientas de ofimática", "Presentaciones", "Investigación"];
     return (
       <>
         <SectionHeading
           eyebrow="TU APRENDIZAJE ABRE PUERTAS"
           title="Tu próximo capítulo profesional."
-          subtitle="Convierte tus habilidades y proyectos en una historia que te represente."
+          subtitle="Tu CV se arma solo con tu perfil y tus proyectos. Edita los textos y exporta a PDF."
         >
           <Button onClick={() => window.print()}>
             <Download size={16} /> Exportar PDF
@@ -1463,7 +1496,7 @@ function App() {
         <div className="cv-layout">
           <section className="panel cv-editor">
             <h2>Tu perfil profesional</h2>
-            <p className="section-description">La vista previa refleja lo que vas construyendo.</p>
+            <p className="section-description">Los cambios se guardan al escribir y se ven en la vista previa.</p>
             <label>
               Nombre
               <input value={userName} onChange={(e) => setUserName(e.target.value)} />
@@ -1474,81 +1507,77 @@ function App() {
             </label>
             <label>
               Titular profesional
-              <input value={headline} onChange={(e) => setHeadline(e.target.value)} />
+              <input
+                value={platform.portfolio.headline}
+                placeholder={career ? `Estudiante de ${career}` : ""}
+                onChange={(e) => platform.setPortfolio((p) => ({ ...p, headline: e.target.value }))}
+              />
             </label>
             <label>
               Sobre ti
-              <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} />
+              <textarea
+                rows={4}
+                value={platform.portfolio.bio}
+                placeholder="Cuenta qué estudias, qué te interesa y qué estás construyendo."
+                onChange={(e) => platform.setPortfolio((p) => ({ ...p, bio: e.target.value }))}
+              />
             </label>
             <div className="profile-tip">
               <ShieldCheck size={20} />
               <p>
-                Las habilidades demostradas están respaldadas por proyectos, no solo por lecciones.
+                La sección «Proyectos / Portafolio» se llena sola con {track === "tech" ? "tus repositorios de GitHub" : "lo que guardas en tu carpeta personal"}.
               </p>
             </div>
-            <Button onClick={() => notify("Perfil actualizado en esta sesión de demostración.")}>
-              Actualizar perfil <Check size={16} />
-            </Button>
           </section>
           <section className="cv-paper">
-            <span className="cv-mark">AM.</span>
-            <span className="eyebrow">DISEÑO · DESARROLLO · CURIOSIDAD</span>
-            <h1>
-              {userName} {surname}
-            </h1>
+            <span className="cv-mark">{initials || "SP"}.</span>
+            <span className="eyebrow">{career ? career.toUpperCase() : "TU CARRERA"}</span>
+            <h1>{fullName || "Tu nombre"}</h1>
             <p className="cv-role">{headline}</p>
-            <div className="cv-contact">Madrid, España · alex.morgan@example.com</div>
+            <div className="cv-contact">
+              {session.email}
+              {platform.github && <> · github.com/{platform.github.login}</>}
+            </div>
             <h3>PERFIL</h3>
             <p>{bio}</p>
-            <h3>HABILIDADES CON EVIDENCIA</h3>
-            <div className="row">
-              <span className="pill green-pill">HTML y CSS</span>
-              <span className="pill green-pill">Resolución de problemas</span>
-            </div>
-            <h3>PROYECTOS SELECCIONADOS</h3>
-            <h4>Forma — sitio web de arquitectura</h4>
-            <p>
-              Diseño y desarrollo de un sitio responsive con HTML, CSS y JavaScript. Abril 2026.
-            </p>
-            <h4>Focus — aplicación de productividad</h4>
-            <p>Aplicación de tareas construida con React. Mayo 2026.</p>
-            <h3>FORMACIÓN Y CERTIFICACIONES</h3>
-            <h4>Fundamentos de desarrollo web · SkillPath</h4>
-            <p>HTML, CSS, JavaScript y diseño responsive · 2026</p>
-            <h3>TECNOLOGÍAS</h3>
-            <p>HTML5 · CSS3 · JavaScript · React · Figma · Git</p>
+            <h3>HABILIDADES</h3>
+            {cvSkills.length ? (
+              <div className="row cv-tags">
+                {cvSkills.map((name) => (
+                  <span key={name} className={`pill ${demonstratedSkills.some((s) => s.name === name) ? "green-pill" : "sp-category"}`}>
+                    {name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="cv-empty">Aún no hay habilidades con evidencia.</p>
+            )}
+            <h3>PROYECTOS / PORTAFOLIO</h3>
+            {evidence.length ? (
+              evidence.slice(0, 6).map((item) => (
+                <div className="cv-project" key={item.id}>
+                  <h4>
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                  </h4>
+                  <p>{item.description} · {item.meta}</p>
+                </div>
+              ))
+            ) : (
+              <p className="cv-empty">
+                {track === "tech" ? "Conecta GitHub para enlazar tus repositorios." : "Sube archivos a tu carpeta para enlazarlos aquí."}
+              </p>
+            )}
+            <h3>FORMACIÓN</h3>
+            <h4>{career ?? "Tu carrera"}</h4>
+            <p>En curso{platform.profile ? ` · Ruta SkillPath: ${areas[platform.profile.area].short}` : ""}</p>
+            <h3>{track === "tech" ? "TECNOLOGÍAS" : "HERRAMIENTAS"}</h3>
+            <p>{tools.length ? tools.join(" · ") : "Se completará con tus proyectos"}</p>
             <footer>
               Un perfil en constante evolución. <span>Hecho con SkillPath</span>
             </footer>
           </section>
         </div>
       </>
-    );
-  }
-  if (!platform.session) {
-    return (
-      <Login
-        accounts={platform.accounts}
-        onRegister={platform.addAccount}
-        onLogin={(session) => {
-          platform.setSession(session);
-          setUserName(session.name);
-          setSurname(session.surname);
-          if (session.isNew) {
-            setPage("Guía de bienvenida");
-          } else {
-            platform.setProfile(
-              platform.profile ?? {
-                area: "fullstack",
-                experience: experienceOptions[1],
-                goal: goalOptions.fullstack[0],
-                time: timeOptions[1],
-              },
-            );
-            setPage("Inicio");
-          }
-        }}
-      />
     );
   }
   const focusMode = page === "Lección" || (page === "Mis rutas" && learningFocus);
@@ -1613,8 +1642,8 @@ function App() {
           <button className="profile-button" onClick={() => setModal("Tu perfil")}>
             <span className="avatar">{initials}</span>
             <span>
-              <b>{fullName}</b>
-              <small>Cuenta personal</small>
+              <b>{fullName || "Tu perfil"}</b>
+              <small>{session.email}</small>
             </span>
             <MoreHorizontal size={18} />
           </button>
@@ -1652,7 +1681,8 @@ function App() {
             </button>
             <span className="header-divider" />
             <span className="streak">
-              <Flame size={17} />7 <span>días de racha</span>
+              <Flame size={17} />
+              {activeDays} <span>{activeDays === 1 ? "día" : "días"} de racha</span>
             </span>
             <button
               className="icon-button theme-toggle"
@@ -1689,11 +1719,21 @@ function App() {
           {page === "Mis proyectos" && Projects()}
           {page === "Guía de bienvenida" && (
             <WelcomeChat
-              name={userName}
-              profile={platform.profile}
+              name={fullName}
+              platform={platform}
+              onName={(name) => {
+                const [first, ...rest] = name.split(" ");
+                setUserName(first);
+                setSurname(rest.join(" "));
+              }}
               onFinish={(profile) => {
                 platform.setProfile(profile);
-                notify("¡Tu ruta está lista! Te recomendamos empezar por tu curso actual.");
+                platform.setPortfolio((p) => ({ ...p, headline: p.headline || `Estudiante de ${profile.career}` }));
+                notify(
+                  profile.track === "tech"
+                    ? "¡Tu espacio está listo! Tus repositorios ya están en Mis proyectos."
+                    : "¡Tu espacio está listo! Tu carpeta personal te espera en Mis proyectos.",
+                );
                 go("Inicio");
               }}
             />
@@ -1707,7 +1747,7 @@ function App() {
             />
           )}
           {page === "Portafolio" && (
-            <Portfolio platform={platform} notify={notify} fullName={fullName} cvView={CV()} />
+            <Portfolio platform={platform} fullName={fullName} cvView={CV()} openProjects={() => go("Mis proyectos")} />
           )}
           {page === "Foro" && <Forum platform={platform} notify={notify} authorName={fullName} />}
           {page === "Eventos recomendados" && <Events platform={platform} notify={notify} />}
@@ -1727,7 +1767,7 @@ function App() {
             </div>
           )}
           {page === "Certificaciones afiliadas" && <AffiliatedCertifications />}
-          {page === "Certificaciones recomendadas" && <RecommendedCertifications notify={notify} />}
+          {page === "Certificaciones recomendadas" && <RecommendedCertifications />}
           {page === "Configuración" && (
             <>
               <SectionHeading
@@ -1741,9 +1781,22 @@ function App() {
                   ¿Cómo te llamas?
                   <input value={userName} onChange={(e) => setUserName(e.target.value)} />
                 </label>
+                <div className="setting-row">
+                  <div>
+                    <b>Tu carrera</b>
+                    <p>{platform.profile ? `${platform.profile.career} · portafolio en ${platform.profile.track === "tech" ? "GitHub" : "carpeta personal"}` : "Aún no la indicaste."}</p>
+                  </div>
+                  <button className="btn secondary" onClick={() => go("Guía de bienvenida")}>
+                    {platform.profile ? "Cambiar en la guía" : "Ir a la guía"}
+                  </button>
+                </div>
                 <label>
                   Tu objetivo principal
-                  <select defaultValue={platform.profile?.goal ?? goalOptions[platform.profile?.area ?? "fullstack"][0]}>
+                  <select
+                    value={platform.profile?.goal ?? goalOptions[platform.profile?.area ?? "fullstack"][0]}
+                    disabled={!platform.profile}
+                    onChange={(e) => platform.setProfile((p) => (p ? { ...p, goal: e.target.value } : p))}
+                  >
                     {goalOptions[platform.profile?.area ?? "fullstack"].map((goal) => (
                       <option key={goal}>{goal}</option>
                     ))}
@@ -1786,12 +1839,8 @@ function App() {
                     </button>
                   </div>
                 ))}
-                <Button onClick={() => notify("Preferencias actualizadas para esta sesión.")}>
-                  Guardar cambios <Check size={16} />
-                </Button>
                 <p className="muted demo-note">
-                  Prototipo de SkillPath con datos ficticios. No se almacena información al cerrar o
-                  recargar.
+                  Los cambios se aplican al instante. Prototipo: al cerrar sesión todo vuelve a empezar desde cero.
                 </p>
                 <button className="btn secondary sp-logout" onClick={logout}>
                   Cerrar sesión <LogOut size={16} />
@@ -1841,26 +1890,35 @@ function App() {
             {modal === "Notificaciones" ? (
               <>
                 <div className="notification-item">
-                  <CheckCircle2 size={23} />
+                  <Sparkles size={23} />
                   <div>
-                    <b>Un nuevo hito en tu camino</b>
-                    <p>Ya completaste tu primera semana de aprendizaje constante.</p>
-                    <small>Hoy · hace 2 horas</small>
+                    <b>Te damos la bienvenida a SkillPath</b>
+                    <p>{platform.profile ? `Tu espacio está configurado para ${platform.profile.career}.` : "Responde la guía para adaptar la plataforma a tu carrera."}</p>
+                    <small>Hoy</small>
+                    {!platform.profile && (
+                      <button className="text-button" onClick={() => { setModal(null); go("Guía de bienvenida"); }}>
+                        Ir a la guía <ArrowRight size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="notification-item">
-                  <Compass size={23} />
+                  <FolderKanban size={23} />
                   <div>
-                    <b>Una ruta que conecta contigo</b>
-                    <p>Descubre «IA para potenciar tus ideas».</p>
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        setModal(null);
-                        go("Explorar aprendizaje");
-                      }}
-                    >
-                      Explorar ruta <ArrowRight size={14} />
+                    <b>{track === "tech" ? "Tus repositorios son tu portafolio" : "Tu carpeta personal está lista"}</b>
+                    <p>{track === "tech" ? `${evidence.length} repositorios enlazados a tu CV.` : evidence.length ? `${evidence.length} trabajos enlazados a tu CV.` : "Sube tu primer trabajo y aparecerá en tu CV."}</p>
+                    <button className="text-button" onClick={() => { setModal(null); go("Mis proyectos"); }}>
+                      Ver mis proyectos <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="notification-item">
+                  <CalendarDays size={23} />
+                  <div>
+                    <b>Nuevos eventos recomendados</b>
+                    <p>Hackatones, talleres y ferias de empleo con enlace a su página oficial.</p>
+                    <button className="text-button" onClick={() => { setModal(null); go("Eventos recomendados"); }}>
+                      Ver eventos <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -1869,90 +1927,55 @@ function App() {
               <>
                 <div className="profile-modal">
                   <span className="avatar">{initials}</span>
-                  <h3>{fullName}</h3>
-                  <p>Explorador de habilidades · Nivel 4</p>
+                  <h3>{fullName || "Tu perfil"}</h3>
+                  <p>{platform.profile ? `Estudiante de ${platform.profile.career}` : session.email}</p>
                 </div>
                 <p>
-                  Tu objetivo: convertirte en diseñador de producto, aprendiendo y construyendo a tu
-                  ritmo.
+                  {platform.profile
+                    ? `Tu objetivo: ${platform.profile.goal.toLowerCase()}. Aprendes a tu ritmo en el área ${areas[platform.profile.area].short}.`
+                    : "Completa la guía de bienvenida para definir tu objetivo."}
                 </p>
                 <Button
                   onClick={() => {
                     setModal(null);
-                    go("Portafolio");
+                    go(platform.profile ? "Portafolio" : "Guía de bienvenida");
                   }}
                 >
-                  Ver mi perfil profesional <ArrowUpRight size={16} />
+                  {platform.profile ? "Ver mi perfil profesional" : "Ir a la guía"} <ArrowUpRight size={16} />
                 </Button>
                 <button className="btn secondary sp-logout" onClick={logout}>
                   Cerrar sesión <LogOut size={16} />
                 </button>
               </>
-            ) : modal === "Nuevo proyecto" ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const data = new FormData(e.currentTarget);
-                  setDrafts((old) => [
-                    ...old,
-                    {
-                      name: String(data.get("name")),
-                      description: String(data.get("description")),
-                    },
-                  ]);
-                  notify("Borrador creado en esta sesión. Sigue desarrollando tu idea.");
-                  setModal(null);
-                  go("Mis proyectos");
-                }}
-              >
-                <label>
-                  Nombre del proyecto
-                  <input name="name" required placeholder="Una idea que quiero construir" />
-                </label>
-                <label>
-                  ¿Qué vas a crear?
-                  <textarea
-                    name="description"
-                    required
-                    rows={4}
-                    placeholder="Describe el problema que quieres resolver…"
-                  />
-                </label>
-                <Button>
-                  Crear borrador <Plus size={16} />
-                </Button>
-              </form>
             ) : (
               <>
                 <p>
-                  {modal === "Tu primer producto"
-                    ? "Tu próximo destino: crear un producto que combine diseño y desarrollo. Continúa la ruta de UX/UI para preparar tu proyecto final."
-                    : modal === "Diseño UX/UI"
-                      ? "Estás dando forma a nuevas experiencias. Has completado el 64 % de tu ruta."
-                      : modal === "HTML y CSS"
-                        ? "Habilidad demostrada con dos proyectos prácticos. Has construido interfaces responsive y accesibles."
-                        : modal === "Tu punto de partida"
-                          ? "Todo comenzó con tu curiosidad. Te uniste a SkillPath el 12 de abril de 2026."
-                          : "Una conquista de tu camino. Este proyecto demuestra tus habilidades para transformar ideas en experiencias reales."}
+                  {modal === "Tu punto de partida"
+                    ? platform.profile ? `Configuraste tu espacio para ${platform.profile.career}. Ese fue tu primer paso.` : "Responde la guía de bienvenida para configurar tu espacio."
+                    : modal === "Tu primera lección"
+                      ? lessonsDone ? `Ya aprobaste ${lessonsDone} ${lessonsDone === 1 ? "lección" : "lecciones"} con su mini-evaluación.` : "Abre Mis rutas, estudia una lección y aprueba su mini-evaluación."
+                      : modal === "Habilidad demostrada"
+                        ? demonstratedSkills.length
+                          ? `Tus proyectos respaldan: ${demonstratedSkills.map((s) => s.name).join(", ")}.`
+                          : "Una habilidad se demuestra cuando un proyecto la respalda. Agrega trabajo a tu portafolio."
+                        : modal === "Tu primer empleo"
+                          ? "Tu gran meta. Cada lección, proyecto y certificación te acerca a ella."
+                          : evidence.length
+                            ? `Tienes ${evidence.length} ${track === "tech" ? "repositorios" : "trabajos"} en tu portafolio, enlazados a tu CV.`
+                            : track === "tech"
+                              ? "Conecta GitHub y tus repositorios formarán tu portafolio."
+                              : "Sube tu primer trabajo a tu carpeta personal."}
                 </p>
-                <div className="modal-evidence">
-                  <ShieldCheck size={22} />
-                  <div>
-                    <b>Evidencias de tu crecimiento</b>
-                    <p>
-                      {modal.includes("Forma") || modal.includes("sitio")
-                        ? "HTML · CSS · Diseño responsive"
-                        : "Aprendizaje, práctica y construcción"}
-                    </p>
-                  </div>
-                </div>
                 <Button
                   onClick={() => {
                     setModal(null);
-                    modal === "Tu primer producto" ? openLesson(0) : go("Mis proyectos");
+                    if (modal === "Tu punto de partida") go(platform.profile ? "Inicio" : "Guía de bienvenida");
+                    else if (modal === "Tu primera lección" || modal === "Tu primer empleo") go("Mis rutas");
+                    else if (modal === "Habilidad demostrada") go("Mis habilidades");
+                    else go("Mis proyectos");
                   }}
                 >
-                  {modal === "Tu primer producto" ? "Seguir mi camino" : "Explorar mis proyectos"}{" "}
+                  {modal === "Habilidad demostrada" ? "Ver mis habilidades" : modal === "Tu primera lección" || modal === "Tu primer empleo" ? "Ir a Mis rutas" : modal === "Tu punto de partida" ? "Continuar" : "Ir a Mis proyectos"}{" "}
                   <ArrowRight size={16} />
                 </Button>
               </>

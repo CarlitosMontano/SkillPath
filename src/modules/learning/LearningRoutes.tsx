@@ -5,21 +5,36 @@ import { htmlLessons, projectCriteria, stageNames, type Question } from "./data"
 type View = "routes" | "detail" | "lesson" | "quiz" | "project" | "exam";
 type RouteKey = "fullstack" | "ux";
 type Stored = { passed: string[]; project: boolean; examAttempts: number; examPassed: boolean };
-const storageKey = "skillpath-learning-v1";
-const initial: Stored = { passed: ["html-structure", "html-text"], project: false, examAttempts: 0, examPassed: false };
+/** Clave del avance de «Mis rutas» en localStorage (se borra en cada inicio de sesión). */
+export const learningStorageKey = "skillpath-learning-v1";
+// Usuario nuevo: ninguna lección aprobada.
+const initial: Stored = { passed: [], project: false, examAttempts: 0, examPassed: false };
 const uxLessons = ["Jerarquía visual", "Tipografía", "Color", "Espaciado"];
 const uxStages = [["Fundamentos visuales", "4 lecciones"], ["Investigación UX", "3 lecciones"], ["Flujos y wireframes", "3 lecciones"], ["UI en Figma", "5 lecciones"], ["Sistemas de diseño", "3 lecciones"], ["Prototipado y pruebas", "3 lecciones"]] as const;
 
 function load(): Stored {
-  try { return { ...initial, ...JSON.parse(localStorage.getItem(storageKey) || "{}") }; } catch { return initial; }
+  try { return { ...initial, ...JSON.parse(localStorage.getItem(learningStorageKey) || "{}") }; } catch { return initial; }
 }
 /** Progreso de la ruta Full Stack, el mismo que muestra «Mis rutas». */
 export function readFullstackProgress(): number {
   const state = load();
   const completed = state.passed.length + Number(state.project) + Number(state.examPassed);
-  return state.passed.length === 2 && !state.project && !state.examPassed ? 32 : Math.round((completed / 7) * 100);
+  return Math.round((completed / 7) * 100);
 }
-export const UX_ROUTE_PROGRESS = 64;
+/** La ruta UX todavía no tiene lecciones navegables: un usuario nuevo empieza en 0 %. */
+export const UX_ROUTE_PROGRESS = 0;
+/** Siguiente lección pendiente de la etapa HTML, por ejemplo «HTML · L1 — Estructura del documento». */
+export function nextLessonLabel(passed: string[]): string {
+  const index = htmlLessons.findIndex((lesson) => !passed.includes(lesson.id));
+  return index === -1 ? "HTML · Proyecto y examen final" : `HTML · L${index + 1} — ${htmlLessons[index].title}`;
+}
+/** Lecciones aprobadas en «Mis rutas» (para las estadísticas de Inicio). */
+export function readNextLessonLabel(): string {
+  return nextLessonLabel(load().passed);
+}
+export function readLessonsPassed(): number {
+  return load().passed.length;
+}
 function assessmentBank(): Question[] {
   const bank = htmlLessons.flatMap((lesson) => lesson.questions);
   return Array.from({ length: 30 }, (_, index) => ({ ...bank[index % bank.length], id: `exam-${index}`, prompt: index < bank.length ? bank[index].prompt : `${bank[index % bank.length].prompt} (repaso ${Math.floor(index / bank.length) + 1})` }));
@@ -41,7 +56,7 @@ export function LearningRoutes({ onFocusChange }: { onFocusChange?: (focused: bo
   const [notice, setNotice] = useState("");
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
 
-  useEffect(() => localStorage.setItem(storageKey, JSON.stringify(state)), [state]);
+  useEffect(() => localStorage.setItem(learningStorageKey, JSON.stringify(state)), [state]);
   // Lecciones y evaluaciones se muestran a pantalla completa (modo enfoque).
   useEffect(() => {
     onFocusChange?.(focusViews.includes(view));
@@ -50,9 +65,9 @@ export function LearningRoutes({ onFocusChange }: { onFocusChange?: (focused: bo
   useEffect(() => () => onFocusChange?.(false), [onFocusChange]);
   const completedActivities = state.passed.length + Number(state.project) + Number(state.examPassed);
   const stageProgress = Math.round((completedActivities / 7) * 100);
-  const routeProgress = state.passed.length === 2 && !state.project && !state.examPassed ? 32 : stageProgress;
+  const routeProgress = stageProgress;
   const allMiniPassed = state.passed.length === htmlLessons.length;
-  const fullRoute = { name: "Desarrollador/a Full Stack con IA", level: "Principiante → Intermedio", stages: 8, time: "48 horas restantes", progress: routeProgress, current: "HTML · L3 — Listas y enlaces" };
+  const fullRoute = { name: "Desarrollador/a Full Stack con IA", level: "Principiante → Intermedio", stages: 8, time: "48 horas restantes", progress: routeProgress, current: nextLessonLabel(state.passed) };
   const uxRoute = { name: "Diseño de Producto UI/UX", level: "Principiante", stages: 6, time: "18 horas restantes", progress: UX_ROUTE_PROGRESS, current: "Investigación UX · Entrevistas y descubrimiento" };
   const active = route === "fullstack" ? fullRoute : uxRoute;
   const lesson = htmlLessons.find((item) => item.id === lessonId) || htmlLessons[2];

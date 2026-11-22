@@ -68,15 +68,14 @@ export function AffiliatedCertifications() {
             <li>Modalidad: {open.modality}</li>
             <li>Nivel: {open.level}</li>
           </ul>
-          <DemoBanner>Institución ficticia para la demostración. Inscripción y convalidación de cursos: <b>Próximamente</b>.</DemoBanner>
-          <button className="btn" disabled>Inscribirme · Próximamente</button>
+          <DemoBanner>Institución ficticia para la demostración. No existe todavía ningún convenio real.</DemoBanner>
         </Dialog>
       )}
     </>
   );
 }
 
-export function RecommendedCertifications({ notify }: { notify: (text: string) => void }) {
+export function RecommendedCertifications() {
   const [area, setArea] = useState<AreaFilter>("Todas");
   const { loading } = useSimulatedLoad(500);
   const list = recommendedCerts.filter((c) => area === "Todas" || c.area === area);
@@ -108,11 +107,11 @@ export function RecommendedCertifications({ notify }: { notify: (text: string) =
               <p>{c.description}</p>
               <ul className="sp-facts">
                 <li><BadgeCheck size={13} aria-hidden="true" /> Nivel: {c.level}</li>
-                <li><CalendarDays size={13} aria-hidden="true" /> Costo: {c.provider === "freeCodeCamp" ? "Gratuito" : "Consultar"}</li>
+                <li><CalendarDays size={13} aria-hidden="true" /> Costo: {c.cost}</li>
               </ul>
-              <button className="btn secondary" onClick={() => notify(`Enlace simulado: en la versión final se abrirá el sitio oficial de ${c.provider}.`)}>
-                Ver en {c.provider} (enlace simulado) <ExternalLink size={14} />
-              </button>
+              <a className="btn secondary" href={c.url} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${c.name} en ${c.provider} (pestaña nueva)`}>
+                Ver en {c.provider} <ExternalLink size={14} />
+              </a>
             </article>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import { ArrowRight, ArrowUpRight, Award, Bot, CalendarDays, CheckCircle2, Compass, FolderGit2, MessagesSquare, Target } from "lucide-react";
 import { areas, courses, events, recommendedCerts } from "./data";
-import { portfolioCompleteness, type Platform } from "./state";
+import { evidenceItems, portfolioCompleteness, type Platform } from "./state";
 import { formatDate, timeAgo } from "./ui";
 
 export type PlatformPage =
@@ -24,7 +24,9 @@ export function HomeOverview({ platform, go, continueCourse, part = "all" }: { p
     areaCourses[0];
   const currentProgress = progressOf(current.id);
   const nextModule = current.modules[Math.min(current.modules.length - 1, Math.round((currentProgress / 100) * current.modules.length))];
-  const { percent } = portfolioCompleteness(platform.portfolio);
+  const { percent } = portfolioCompleteness(platform);
+  const evidence = evidenceItems(platform).length;
+  const tech = platform.profile?.track === "tech";
   const certs = recommendedCerts.filter((c) => c.area === area).slice(0, 2);
   const upcoming = [...events]
     .sort((a, b) => Number(platform.savedEvents.includes(b.id)) - Number(platform.savedEvents.includes(a.id)) || a.date.localeCompare(b.date))
@@ -87,9 +89,9 @@ export function HomeOverview({ platform, go, continueCourse, part = "all" }: { p
               <b>{percent}%</b>
             </div>
             <ul>
-              <li><b>{platform.portfolio.projects.length}</b> {platform.portfolio.projects.length === 1 ? "proyecto" : "proyectos"}</li>
+              <li><b>{evidence}</b> {tech ? (evidence === 1 ? "repositorio" : "repositorios") : evidence === 1 ? "trabajo guardado" : "trabajos guardados"}</li>
               <li><b>{platform.portfolio.skills.length}</b> {platform.portfolio.skills.length === 1 ? "habilidad" : "habilidades"}</li>
-              <li>GitHub: <b>{platform.portfolio.github ? "conectado" : "pendiente"}</b></li>
+              <li>{tech ? <>GitHub: <b>{platform.github ? `@${platform.github.login}` : "pendiente"}</b></> : <>Carpeta: <b>{evidence ? "con archivos" : "vacía"}</b></>}</li>
             </ul>
           </div>
           <button className="text-button" onClick={() => go("Portafolio")}>Completar mi portafolio <ArrowUpRight size={14} /></button>

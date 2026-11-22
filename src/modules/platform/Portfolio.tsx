@@ -1,21 +1,23 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Check, Circle, ExternalLink, FolderGit2, GitBranch as Github, Plus, Trash2, X } from "lucide-react";
-import { portfolioCompleteness, type Platform } from "./state";
-import { DemoBanner, Dialog, PageHeading } from "./ui";
+import { ArrowRight, Check, Circle, ExternalLink, FolderOpen, Plus, X } from "lucide-react";
+import { GithubMark } from "./GithubConnect";
+import { evidenceItems, portfolioCompleteness, type Platform } from "./state";
+import { PageHeading } from "./ui";
 
-type Tab = "Editar" | "Vista previa" | "Mi CV";
-const urlPattern = /^https?:\/\/\S+\.\S+/i;
-const githubPattern = /^https:\/\/github\.com\/[\w-]+\/?$/i;
+type Tab = "Editar" | "Perfil" | "Mi CV";
 
-export function Portfolio({ platform, notify, fullName, cvView }: { platform: Platform; notify: (text: string) => void; fullName: string; cvView: ReactNode }) {
-  const { portfolio, setPortfolio } = platform;
+/**
+ * Portafolio: perfil profesional + evidencias. Las evidencias no se agregan aquí:
+ * son los repositorios de GitHub (carreras de sistemas) o la carpeta personal (el resto),
+ * que se gestionan en «Mis proyectos».
+ */
+export function Portfolio({ platform, fullName, cvView, openProjects }: { platform: Platform; fullName: string; cvView: ReactNode; openProjects: () => void }) {
+  const { portfolio, setPortfolio, profile, github, folder } = platform;
   const [tab, setTab] = useState<Tab>("Editar");
   const [skill, setSkill] = useState("");
-  const [githubDraft, setGithubDraft] = useState(portfolio.github);
-  const [githubError, setGithubError] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [projectErrors, setProjectErrors] = useState<Record<string, string>>({});
-  const { checks, percent } = portfolioCompleteness(portfolio);
+  const { checks, percent } = portfolioCompleteness(platform);
+  const evidence = evidenceItems(platform);
+  const tech = profile?.track === "tech";
 
   const update = (patch: Partial<typeof portfolio>) => setPortfolio((old) => ({ ...old, ...patch }));
 
@@ -27,42 +29,13 @@ export function Portfolio({ platform, notify, fullName, cvView }: { platform: Pl
     setSkill("");
   };
 
-  const saveGithub = (event: FormEvent) => {
-    event.preventDefault();
-    if (githubDraft.trim() && !githubPattern.test(githubDraft.trim())) {
-      setGithubError("Usa el formato https://github.com/tu-usuario");
-      return;
-    }
-    setGithubError("");
-    update({ github: githubDraft.trim() });
-    notify("Enlace de GitHub guardado en esta sesión.");
-  };
-
-  const addProject = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    const description = String(data.get("description") ?? "").trim();
-    const repo = String(data.get("repo") ?? "").trim();
-    const tech = String(data.get("tech") ?? "").split(",").map((t) => t.trim()).filter(Boolean);
-    const errors: Record<string, string> = {};
-    if (name.length < 3) errors.name = "El nombre debe tener al menos 3 caracteres.";
-    if (description.length < 10) errors.description = "Describe el proyecto en al menos 10 caracteres.";
-    if (repo && !urlPattern.test(repo)) errors.repo = "Escribe un enlace válido que empiece con https://";
-    setProjectErrors(errors);
-    if (Object.keys(errors).length) return;
-    update({ projects: [...portfolio.projects, { id: Date.now(), name, description, repo, tech }] });
-    setAdding(false);
-    notify("Proyecto agregado a tu portafolio.");
-  };
-
   return (
     <>
-      <PageHeading eyebrow="TU PORTAFOLIO" title="Muestra lo que sabes hacer." subtitle="Reúne tu perfil, habilidades y proyectos en un solo lugar para compartirlo con quien quieras.">
-        <button className="btn" onClick={() => setAdding(true)}>
-          Agregar proyecto <Plus size={16} />
-        </button>
-      </PageHeading>
+      <PageHeading
+        eyebrow="TU PORTAFOLIO"
+        title="Muestra lo que sabes hacer."
+        subtitle={tech ? "Tu perfil profesional y tus repositorios de GitHub, en un solo lugar." : "Tu perfil profesional y los trabajos de tu carpeta personal, en un solo lugar."}
+      />
       <section className="panel sp-completeness" aria-label="Completitud del perfil">
         <div className="sp-ring" style={{ ["--value" as string]: `${percent}%` }} role="img" aria-label={`Perfil completo al ${percent}%`}>
           <b>{percent}%</b>
@@ -81,7 +54,7 @@ export function Portfolio({ platform, notify, fullName, cvView }: { platform: Pl
         </div>
       </section>
       <div className="tabs" role="tablist" aria-label="Secciones del portafolio">
-        {(["Editar", "Vista previa", "Mi CV"] as Tab[]).map((t) => (
+        {(["Editar", "Perfil", "Mi CV"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "selected" : ""} onClick={() => setTab(t)}>
             {t}
           </button>
@@ -95,12 +68,12 @@ export function Portfolio({ platform, notify, fullName, cvView }: { platform: Pl
               <h2>Perfil profesional</h2>
               <label>
                 Titular profesional
-                <input value={portfolio.headline} onChange={(e) => update({ headline: e.target.value })} placeholder="Ej. Desarrolladora frontend junior" />
+                <input value={portfolio.headline} onChange={(e) => update({ headline: e.target.value })} placeholder={profile ? `Ej. Estudiante de ${profile.career}` : "Ej. Estudiante de Ingeniería de Sistemas"} />
               </label>
               <label>
                 Biografía breve
-                <textarea rows={4} maxLength={400} value={portfolio.bio} onChange={(e) => update({ bio: e.target.value })} aria-describedby="bio-count" />
-                <small id="bio-count" className="muted">{portfolio.bio.length}/400 caracteres</small>
+                <textarea rows={4} maxLength={400} value={portfolio.bio} onChange={(e) => update({ bio: e.target.value })} aria-describedby="bio-count" placeholder="Cuenta en pocas líneas qué estudias, qué te interesa y qué estás construyendo." />
+                <small id="bio-count" className="muted">{portfolio.bio.length}/400 caracteres · se guarda automáticamente</small>
               </label>
               <h3>Habilidades</h3>
               <ul className="sp-tags" aria-label="Tus habilidades">
@@ -116,106 +89,96 @@ export function Portfolio({ platform, notify, fullName, cvView }: { platform: Pl
               </ul>
               <form className="sp-inline-form" onSubmit={addSkill}>
                 <label className="sr-only" htmlFor="new-skill">Nueva habilidad</label>
-                <input id="new-skill" value={skill} onChange={(e) => setSkill(e.target.value)} placeholder="Ej. React" />
+                <input id="new-skill" value={skill} onChange={(e) => setSkill(e.target.value)} placeholder={tech ? "Ej. React" : "Ej. Excel"} />
                 <button className="btn secondary" disabled={!skill.trim()}>Agregar <Plus size={14} /></button>
               </form>
             </section>
             <section className="panel sp-section">
-              <h2><Github size={18} aria-hidden="true" /> GitHub</h2>
-              <form onSubmit={saveGithub}>
-                <label>
-                  Enlace de tu perfil de GitHub
-                  <input value={githubDraft} onChange={(e) => setGithubDraft(e.target.value)} placeholder="https://github.com/tu-usuario" aria-invalid={!!githubError} aria-describedby={githubError ? "gh-error" : undefined} />
-                  {githubError && <small id="gh-error" className="sp-field-error">{githubError}</small>}
-                </label>
-                <button className="btn secondary">Guardar enlace</button>
-              </form>
-              <DemoBanner>Integración automática con GitHub: <b>Próximamente</b>. Por ahora agrega tus repositorios manualmente.</DemoBanner>
-              <h2 className="sp-mt">Proyectos realizados</h2>
-              {portfolio.projects.length === 0 ? (
-                <p className="muted">Todavía no hay proyectos. Agrega el primero para mostrar tu trabajo.</p>
+              {tech ? (
+                <>
+                  <h2><GithubMark size={18} /> GitHub</h2>
+                  {github ? (
+                    <div className="gh-account compact">
+                      <img src={github.avatarUrl} alt="" width={40} height={40} />
+                      <div>
+                        <b>@{github.login}</b>
+                        <span className="muted">{github.repos.length} repositorios enlazados a tu portafolio y tu CV</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="muted">Todavía no conectaste tu cuenta. Es obligatorio para tu carrera.</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h2><FolderOpen size={18} aria-hidden="true" /> Carpeta personal</h2>
+                  <p className="muted">{folder.length ? `${folder.length} ${folder.length === 1 ? "elemento enlazado" : "elementos enlazados"} a tu portafolio y tu CV.` : "Tu carpeta está vacía. Sube tu primer trabajo para mostrarlo aquí."}</p>
+                </>
+              )}
+              <h2 className="sp-mt">Proyectos / Portafolio</h2>
+              {evidence.length === 0 ? (
+                <p className="muted">Aún no hay proyectos para mostrar.</p>
               ) : (
                 <ul className="sp-project-list">
-                  {portfolio.projects.map((p) => (
-                    <li key={p.id}>
-                      <FolderGit2 size={18} aria-hidden="true" />
+                  {evidence.slice(0, 6).map((item) => (
+                    <li key={item.id}>
+                      {tech ? <GithubMark size={16} /> : <FolderOpen size={18} aria-hidden="true" />}
                       <div>
-                        <b>{p.name}</b>
-                        <small>{p.tech.join(" · ") || "Sin tecnologías"} · {p.repo ? "Con repositorio" : "Sin repositorio"}</small>
+                        <b>{item.title}</b>
+                        <small>{item.meta}</small>
                       </div>
-                      <button className="icon-button" aria-label={`Eliminar ${p.name}`} onClick={() => update({ projects: portfolio.projects.filter((x) => x.id !== p.id) })}>
-                        <Trash2 size={16} />
-                      </button>
+                      <a className="icon-button" href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir ${item.title}`}>
+                        <ExternalLink size={16} />
+                      </a>
                     </li>
                   ))}
                 </ul>
               )}
-              <button className="btn secondary" onClick={() => setAdding(true)}>Agregar proyecto <Plus size={14} /></button>
+              <button className="btn secondary" onClick={openProjects}>
+                {tech ? "Gestionar en Mis proyectos" : "Abrir mi carpeta"} <ArrowRight size={14} />
+              </button>
             </section>
           </div>
         )}
-        {tab === "Vista previa" && (
-          <article className="panel sp-preview" aria-label="Vista previa del portafolio">
+        {tab === "Perfil" && (
+          <article className="panel sp-preview" aria-label="Perfil público del portafolio">
             <header>
               <span className="avatar" aria-hidden="true">{fullName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</span>
               <div>
                 <h2>{fullName}</h2>
-                <p>{portfolio.headline || "Agrega un titular profesional"}</p>
-                {portfolio.github && (
-                  <a className="text-button" href={portfolio.github} target="_blank" rel="noreferrer">
-                    <Github size={14} /> {portfolio.github.replace("https://", "")}
+                <p>{portfolio.headline || (profile ? `Estudiante de ${profile.career}` : "Agrega un titular profesional")}</p>
+                {github && (
+                  <a className="text-button" href={github.url} target="_blank" rel="noopener noreferrer">
+                    <GithubMark size={14} /> github.com/{github.login}
                   </a>
                 )}
               </div>
             </header>
             <p>{portfolio.bio || "Tu biografía aparecerá aquí."}</p>
             <h3>Habilidades</h3>
-            <ul className="sp-tags readonly">{portfolio.skills.map((s) => <li key={s}>{s}</li>)}</ul>
-            <h3>Proyectos</h3>
-            <div className="sp-grid two">
-              {portfolio.projects.map((p) => (
-                <div className="sp-preview-project" key={p.id}>
-                  <b>{p.name}</b>
-                  <p>{p.description}</p>
-                  <ul className="sp-tags readonly">{p.tech.map((t) => <li key={t}>{t}</li>)}</ul>
-                  {p.repo ? (
-                    <a className="text-button" href={p.repo} target="_blank" rel="noreferrer">Ver repositorio <ExternalLink size={13} /></a>
-                  ) : (
-                    <small className="muted">Repositorio no agregado</small>
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="muted demo-note">Vista previa local. Publicar tu portafolio con un enlace público: Próximamente.</p>
+            <ul className="sp-tags readonly">
+              {portfolio.skills.length ? portfolio.skills.map((s) => <li key={s}>{s}</li>) : <li className="sp-tag-empty">Sin habilidades todavía</li>}
+            </ul>
+            <h3>Proyectos / Portafolio</h3>
+            {evidence.length === 0 ? (
+              <p className="muted">Cuando {tech ? "conectes GitHub" : "subas archivos a tu carpeta"}, tus proyectos aparecerán aquí.</p>
+            ) : (
+              <div className="sp-grid two">
+                {evidence.map((item) => (
+                  <div className="sp-preview-project" key={item.id}>
+                    <b>{item.title}</b>
+                    <p>{item.description}</p>
+                    <small className="muted">{item.meta}</small>
+                    <a className="text-button" href={item.url} target="_blank" rel="noopener noreferrer">
+                      {tech ? "Ver repositorio" : "Abrir"} <ExternalLink size={13} />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
         )}
       </div>
-      {adding && (
-        <Dialog title="Agregar proyecto" eyebrow="TU PORTAFOLIO" onClose={() => { setAdding(false); setProjectErrors({}); }}>
-          <form onSubmit={addProject} noValidate>
-            <label>
-              Nombre del proyecto
-              <input name="name" placeholder="Ej. App del clima" aria-invalid={!!projectErrors.name} />
-              {projectErrors.name && <small className="sp-field-error">{projectErrors.name}</small>}
-            </label>
-            <label>
-              Descripción
-              <textarea name="description" rows={3} placeholder="¿Qué problema resuelve y qué aprendiste?" aria-invalid={!!projectErrors.description} />
-              {projectErrors.description && <small className="sp-field-error">{projectErrors.description}</small>}
-            </label>
-            <label>
-              Tecnologías utilizadas (separadas por comas)
-              <input name="tech" placeholder="React, TypeScript, CSS" />
-            </label>
-            <label>
-              Enlace al repositorio (opcional)
-              <input name="repo" placeholder="https://github.com/usuario/proyecto" aria-invalid={!!projectErrors.repo} />
-              {projectErrors.repo && <small className="sp-field-error">{projectErrors.repo}</small>}
-            </label>
-            <button className="btn">Guardar proyecto <Check size={15} /></button>
-          </form>
-        </Dialog>
-      )}
     </>
   );
 }

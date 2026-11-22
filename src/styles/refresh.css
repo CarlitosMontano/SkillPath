@@ -1181,3 +1181,548 @@ select:focus {
     gap: 6px;
   }
 }
+
+/* =====================================================================
+   Funciones nuevas: GitHub, carpeta personal, guía y foro
+   ===================================================================== */
+
+/* ───────── Botón y puerta de GitHub ───────── */
+.btn.gh-button,
+.btn.gh-authorize {
+  background: #1f2328;
+  border-color: #1f2328;
+  color: #fff;
+}
+.btn.gh-button:hover:not(:disabled),
+.btn.gh-authorize:hover:not(:disabled) {
+  background: #32383f;
+}
+:root[data-theme="dark"] .btn.gh-button,
+:root[data-theme="dark"] .btn.gh-authorize {
+  background: #f0f3f6;
+  border-color: #f0f3f6;
+  color: #1f2328;
+}
+
+.sp-github-gate {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: 40px;
+  padding: 16px 18px;
+  border: 1px solid var(--blue-200);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  animation: rise 420ms var(--ease-out) both;
+}
+.sp-github-gate > div {
+  flex: 1;
+}
+.sp-github-gate p {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+/* ───────── Pantalla de autorización (simulada) ───────── */
+.gh-overlay {
+  z-index: 95;
+}
+.gh-auth {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: modal-in 260ms var(--ease-out) both;
+}
+.gh-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.gh-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.gh-logo-app,
+.gh-logo-github {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+.gh-logo-app {
+  background: var(--blue);
+  color: #fff;
+}
+.gh-logo-github {
+  background: #1f2328;
+  color: #fff;
+}
+.gh-dots {
+  display: flex;
+  gap: 5px;
+}
+.gh-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--subtle);
+  animation: gh-blink 1.2s ease-in-out infinite;
+}
+.gh-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.gh-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes gh-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+.gh-auth h2 {
+  font-size: 22px;
+}
+.gh-sub {
+  margin-top: 4px;
+  color: var(--muted);
+}
+.gh-scopes {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+}
+.gh-scopes li {
+  display: flex;
+  gap: 12px;
+}
+.gh-scopes svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--blue-strong);
+}
+.gh-scopes b {
+  display: block;
+  font-size: 14px;
+}
+.gh-scopes small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.gh-auth form {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+.gh-auth form small {
+  font-size: 12px;
+}
+.gh-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ───────── Cuenta y repositorios ───────── */
+.gh-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.gh-account img {
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+.gh-account > div {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.gh-account.compact {
+  padding: 0;
+  margin: 8px 0 4px;
+}
+.gh-repo h3 {
+  word-break: break-word;
+}
+.gh-repo-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.gh-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--warm-text);
+}
+.gh-lang-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--subtle);
+}
+.gh-lang-dot[data-lang="HTML"] { background: #e34c26; }
+.gh-lang-dot[data-lang="CSS"] { background: #663399; }
+.gh-lang-dot[data-lang="JavaScript"] { background: #f1e05a; }
+.gh-lang-dot[data-lang="TypeScript"] { background: #3178c6; }
+.gh-lang-dot[data-lang="Python"] { background: #3572a5; }
+.gh-lang-dot[data-lang="Ruby"] { background: #701516; }
+.gh-lang-dot[data-lang="Java"] { background: #b07219; }
+
+/* ───────── Carpeta personal ───────── */
+.sp-folder-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.sp-dropzone {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px dashed var(--blue-200);
+  background: var(--blue-hero);
+  text-align: center;
+  color: var(--blue-strong);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+.sp-dropzone b {
+  color: var(--ink);
+  font-size: 16px;
+}
+.sp-dropzone p {
+  max-width: 34ch;
+  font-size: 13px;
+}
+.sp-dropzone.is-dragging {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+.sp-link-form {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.sp-link-form h2 {
+  font-size: 16px;
+}
+.sp-link-form label {
+  margin: 0;
+}
+.sp-link-form .btn {
+  justify-self: start;
+}
+.sp-folder-count {
+  font-size: 16px;
+}
+.sp-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.sp-folder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  animation: rise 360ms var(--ease-out) both;
+}
+.sp-folder-thumb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--blue-soft);
+  color: var(--blue-strong);
+}
+.sp-folder-thumb[data-kind="pdf"] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.sp-folder-thumb[data-kind="link"] {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.sp-folder-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sp-folder-info {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.sp-folder-info b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-folder-actions {
+  display: flex;
+  gap: 2px;
+}
+
+/* ───────── Guía: nombre y carrera ───────── */
+.sp-chat-compose {
+  border-top: 1px solid var(--border);
+  background: var(--page);
+}
+.sp-chat-compose .sp-chat-options {
+  border-top: 0;
+  padding-bottom: 6px;
+}
+.sp-chat-compose .sp-inline-form {
+  padding: 10px 24px 20px;
+  margin: 0;
+}
+.sp-chat-compose .sp-inline-form input {
+  flex: 1;
+}
+
+/* ───────── Foro ───────── */
+.sp-forum-tabs {
+  margin: 0 0 18px;
+}
+.sp-post {
+  position: relative;
+}
+.sp-post-open {
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+/* Toda la tarjeta abre la publicación; el botón de me gusta queda por encima. */
+.sp-post-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.sp-post .sp-like {
+  position: relative;
+  z-index: 1;
+}
+.sp-post-open:focus-visible {
+  outline: none;
+}
+.sp-post:has(.sp-post-open:focus-visible) {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.sp-post-cta {
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--blue-strong);
+  opacity: 0.75;
+}
+.sp-post-peek {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 16px;
+  width: min(320px, 70%);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transform-origin: top right;
+  transition:
+    opacity 150ms ease,
+    transform 150ms var(--ease-out);
+}
+.sp-post-peek p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+.sp-post-peek span {
+  font-weight: 600;
+  color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sp-post:hover {
+    border-color: var(--blue-200);
+    box-shadow: var(--shadow-sm);
+  }
+  .sp-post:hover .sp-post-peek {
+    opacity: 1;
+    transform: none;
+    transition-delay: 350ms;
+  }
+  .sp-post:hover .sp-post-cta {
+    opacity: 1;
+  }
+}
+.sp-post:focus-within .sp-post-peek {
+  opacity: 1;
+  transform: none;
+}
+.sp-post-body {
+  font-size: 15.5px;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+.sp-replies li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.sp-replies li > div {
+  flex: 1;
+  min-width: 0;
+}
+.sp-replies li.is-mine {
+  background: var(--blue-soft);
+  border: 1px solid var(--blue-200);
+}
+.sp-reply-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.sp-you {
+  background: var(--blue);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.sp-comment-form {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 12px;
+  margin-top: 18px;
+}
+.sp-comment-form textarea {
+  resize: vertical;
+}
+.sp-comment-form .btn {
+  grid-column: 2;
+  justify-self: end;
+}
+.sp-my-comments {
+  display: grid;
+  gap: 12px;
+}
+.sp-my-comments li {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+}
+.sp-my-comments small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sp-my-comments .text-button {
+  justify-self: start;
+}
+
+/* ───────── Otros ───────── */
+.sp-reflections {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.sp-reflections li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.sp-soon-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+.cv-tags {
+  flex-wrap: wrap;
+}
+.cv-project a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--blue-300);
+  text-underline-offset: 3px;
+}
+.cv-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+.skill-explainer {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* El avatar de la barra superior repetía el botón de perfil del menú: solo se muestra en móvil. */
+.topbar .small-avatar {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .topbar .small-avatar {
+    display: inline-flex;
+  }
+  .sp-folder-tools {
+    grid-template-columns: 1fr;
+  }
+  .sp-github-gate {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+  .skill-explainer {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sp-chat-compose .sp-inline-form {
+    padding: 10px 14px 16px;
+  }
+  .gh-account {
+    flex-wrap: wrap;
+  }
+  .gh-account > div {
+    flex-basis: calc(100% - 72px);
+  }
+  .gh-account > .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-dots i {
+    animation: none;
+  }
+}

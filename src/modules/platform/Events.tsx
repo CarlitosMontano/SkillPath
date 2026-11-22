@@ -2,13 +2,12 @@ import { useState } from "react";
 import { Bookmark, BookmarkCheck, CalendarDays, CalendarX, ExternalLink, MapPin, Monitor, Tag } from "lucide-react";
 import { eventCategories, events, type EventCategory, type EventItem } from "./data";
 import type { Platform } from "./state";
-import { DemoBanner, Dialog, EmptyState, PageHeading, SkeletonGrid, formatDate, useSimulatedLoad } from "./ui";
+import { DemoBanner, EmptyState, PageHeading, SkeletonGrid, formatDate, useSimulatedLoad } from "./ui";
 
 type Filter = "Todos" | "Guardados" | EventCategory;
 
 export function Events({ platform, notify }: { platform: Platform; notify: (text: string) => void }) {
   const [filter, setFilter] = useState<Filter>("Todos");
-  const [open, setOpen] = useState<EventItem | null>(null);
   const { loading } = useSimulatedLoad(500);
   const { savedEvents, toggleSavedEvent } = platform;
   const list = events
@@ -27,7 +26,7 @@ export function Events({ platform, notify }: { platform: Platform; notify: (text
         title="Conecta, aprende y muestra lo que construyes."
         subtitle="Hackatones, reuniones, charlas, talleres y ferias de empleo seleccionados para tu camino."
       />
-      <DemoBanner>Eventos de ejemplo con fechas y lugares simulados. La conexión con calendarios y organizadores reales estará disponible próximamente.</DemoBanner>
+      <DemoBanner>Las fechas son de ejemplo. «Ver evento» abre en una pestaña nueva la página real del organizador o de la plataforma donde se publican eventos similares.</DemoBanner>
       <div className="filter-chips" role="group" aria-label="Filtrar eventos">
         {(["Todos", ...eventCategories, "Guardados"] as Filter[]).map((f) => (
           <button key={f} className={filter === f ? "selected" : ""} aria-pressed={filter === f} onClick={() => setFilter(f)}>
@@ -52,7 +51,7 @@ export function Events({ platform, notify }: { platform: Platform; notify: (text
               <article className="panel sp-card sp-event" key={e.id}>
                 <div className="row between">
                   <span className="pill sp-category"><Tag size={11} aria-hidden="true" /> {e.category}</span>
-                  <span className="pill sp-demo-pill">Ejemplo</span>
+                  <span className="pill sp-demo-pill">{e.source}</span>
                 </div>
                 <h3>{e.name}</h3>
                 <p>{e.description}</p>
@@ -62,7 +61,9 @@ export function Events({ platform, notify }: { platform: Platform; notify: (text
                   <li><MapPin size={13} aria-hidden="true" /> {e.location}</li>
                 </ul>
                 <div className="row sp-actions">
-                  <button className="btn secondary" onClick={() => setOpen(e)}>Ver evento <ExternalLink size={14} /></button>
+                  <a className="btn secondary" href={e.url} target="_blank" rel="noopener noreferrer" aria-label={`Ver evento: ${e.name} (abre ${e.source} en una pestaña nueva)`}>
+                    Ver evento <ExternalLink size={14} />
+                  </a>
                   <button className={`btn secondary ${saved ? "sp-saved" : ""}`} aria-pressed={saved} onClick={() => save(e)}>
                     {saved ? <><BookmarkCheck size={14} /> Guardado</> : <><Bookmark size={14} /> Guardar evento</>}
                   </button>
@@ -71,27 +72,6 @@ export function Events({ platform, notify }: { platform: Platform; notify: (text
             );
           })}
         </div>
-      )}
-      {open && (
-        <Dialog title={open.name} eyebrow={`${open.category.toUpperCase()} · EJEMPLO`} onClose={() => setOpen(null)}>
-          <p>{open.description}</p>
-          <ul className="sp-facts">
-            <li><CalendarDays size={13} aria-hidden="true" /> {formatDate(open.date)}</li>
-            <li><Monitor size={13} aria-hidden="true" /> {open.modality}</li>
-            <li><MapPin size={13} aria-hidden="true" /> {open.location}</li>
-          </ul>
-          {open.hasDetails ? (
-            <DemoBanner>Agenda, ponentes e inscripción del organizador: <b>Próximamente</b>. Este evento es un ejemplo.</DemoBanner>
-          ) : (
-            <DemoBanner>Aún no existe una fuente real para este evento. Información completa: <b>Próximamente</b>.</DemoBanner>
-          )}
-          <div className="row sp-actions">
-            <button className="btn" onClick={() => save(open)}>
-              {savedEvents.includes(open.id) ? "Quitar de guardados" : "Guardar evento"}
-            </button>
-            <button className="btn secondary" disabled>Inscribirme · Próximamente</button>
-          </div>
-        </Dialog>
       )}
     </>
   );
