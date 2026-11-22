@@ -12,7 +12,8 @@ export type PlatformPage =
   | "Certificaciones afiliadas"
   | "Certificaciones recomendadas";
 
-export function HomeOverview({ platform, go, continueCourse }: { platform: Platform; go: (page: PlatformPage) => void; continueCourse: (id: string) => void }) {
+/** `part` permite mostrar solo el panel de tu camino o solo el de comunidad. */
+export function HomeOverview({ platform, go, continueCourse, part = "all" }: { platform: Platform; go: (page: PlatformPage) => void; continueCourse: (id: string) => void; part?: "all" | "path" | "community" }) {
   const area = platform.profile?.area ?? "fullstack";
   const progressOf = (id: string) => platform.courseProgress[id] ?? 0;
   const areaCourses = courses.filter((c) => c.area === area && !c.comingSoon);
@@ -31,17 +32,27 @@ export function HomeOverview({ platform, go, continueCourse }: { platform: Platf
   const recentPosts = [...platform.posts].sort((a, b) => a.minutesAgo - b.minutesAgo).slice(0, 3);
 
   return (
-    <section className="sp-overview" aria-labelledby="overview-title">
+    <section className={`sp-overview sp-overview-${part}`} aria-labelledby={`overview-title-${part}`}>
       <div className="section-heading row between">
-        <div>
-          <span className="eyebrow">TU PANEL PERSONAL</span>
-          <h2 id="overview-title">Todo lo que sigue en tu camino</h2>
-        </div>
-        <button className="text-button" onClick={() => go("Guía de bienvenida")}>
-          <Bot size={15} /> Hablar con tu guía
-        </button>
+        {part === "community" ? (
+          <div>
+            <span className="eyebrow">COMUNIDAD Y OPORTUNIDADES</span>
+            <h2 id={`overview-title-${part}`}>Lo que pasa a tu alrededor</h2>
+          </div>
+        ) : (
+          <div>
+            <span className="eyebrow">TU PANEL PERSONAL</span>
+            <h2 id={`overview-title-${part}`}>Todo lo que sigue en tu camino</h2>
+          </div>
+        )}
+        {part !== "community" && (
+          <button className="text-button" onClick={() => go("Guía de bienvenida")}>
+            <Bot size={15} /> Hablar con tu guía
+          </button>
+        )}
       </div>
       <div className="sp-overview-grid">
+        {part !== "community" && (<>
         <article className="panel sp-ov-card sp-ov-area">
           <span className="eyebrow"><Compass size={12} aria-hidden="true" /> ÁREA RECOMENDADA</span>
           <h3>{areas[area].name}</h3>
@@ -83,6 +94,8 @@ export function HomeOverview({ platform, go, continueCourse }: { platform: Platf
           </div>
           <button className="text-button" onClick={() => go("Portafolio")}>Completar mi portafolio <ArrowUpRight size={14} /></button>
         </article>
+        </>)}
+        {part !== "path" && (<>
 
         <article className="panel sp-ov-card">
           <span className="eyebrow"><Award size={12} aria-hidden="true" /> CERTIFICACIONES RECOMENDADAS</span>
@@ -116,6 +129,7 @@ export function HomeOverview({ platform, go, continueCourse }: { platform: Platf
           </ul>
           <button className="text-button" onClick={() => go("Foro")}>Ir al foro <ArrowUpRight size={14} /></button>
         </article>
+        </>)}
       </div>
     </section>
   );

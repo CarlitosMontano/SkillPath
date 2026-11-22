@@ -804,6 +804,246 @@ select:focus {
   }
 }
 
+/* ───────── Inicio en dos niveles ───────── */
+.dash-tier {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 40px 0 18px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+.dash-tier p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sp-overview-community {
+  margin-top: 30px;
+}
+
+@media (max-width: 760px) {
+  .dash-tier {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* ───────── Tema: botón sol/luna ───────── */
+.theme-toggle svg {
+  transition: transform 300ms var(--ease-out);
+}
+
+.theme-toggle:active svg {
+  transform: rotate(-30deg) scale(0.9);
+}
+
+/* ───────── Modo enfoque: lecciones y evaluaciones ───────── */
+.focus-mode .sidebar,
+.focus-mode .sidebar-overlay,
+.focus-mode .mobile-toggle,
+.focus-mode .header-search,
+.focus-mode .header-divider,
+.focus-mode .streak,
+.focus-mode .main-footer {
+  display: none;
+}
+
+.focus-mode .main-shell {
+  margin-left: 0;
+}
+
+.focus-mode .topbar {
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+.focus-mode .main-content {
+  max-width: 1080px;
+  padding-top: clamp(20px, 4vw, 40px);
+  padding-bottom: 64px;
+}
+
+.focus-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink);
+  transition:
+    border-color 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.focus-exit:hover {
+  border-color: var(--blue-300);
+}
+
+.focus-exit:active {
+  transform: scale(0.97);
+}
+
+/* Lectura más cómoda en el modo enfoque */
+.focus-mode .lesson-reading {
+  max-width: none;
+  padding: clamp(22px, 4vw, 44px);
+}
+
+.focus-mode .lesson-reading p,
+.focus-mode .lesson-copy > p {
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.focus-mode .lesson-sidebar {
+  position: sticky;
+  top: 88px;
+}
+
+/* Evaluaciones: respuestas claras y barra de avance animada */
+.assessment-progress {
+  overflow: visible;
+}
+
+.assessment-progress > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 400ms var(--ease-out);
+}
+
+.question-card {
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.question-card label {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 11px 12px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 140ms var(--ease-out);
+}
+
+.question-card label:hover {
+  border-color: var(--blue-300);
+}
+
+.question-card label:active {
+  transform: scale(0.99);
+}
+
+.question-card label:has(input:checked) {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+  color: var(--ink);
+  font-weight: 550;
+}
+
+.question-card input {
+  accent-color: var(--blue);
+}
+
+/* Celebración al aprobar: un solo destello, nunca en bucle */
+.assessment-result {
+  position: relative;
+  overflow: hidden;
+}
+
+.assessment-result.is-passed .result-icon {
+  animation: pop-in 520ms var(--ease-out) both;
+}
+
+.assessment-result.is-passed .assessment-score {
+  animation: rise 600ms var(--ease-out) 120ms both;
+}
+
+.celebrate {
+  position: absolute;
+  top: 46px;
+  left: 50px;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.celebrate i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--blue);
+  opacity: 0;
+  animation: burst 900ms var(--ease-out) 80ms forwards;
+}
+
+.celebrate i:nth-child(3n) {
+  background: var(--warm);
+}
+.celebrate i:nth-child(3n + 1) {
+  background: var(--green);
+  border-radius: 50%;
+}
+.celebrate i:nth-child(1) { --x: 64px; --y: -38px; --r: 120deg; }
+.celebrate i:nth-child(2) { --x: 88px; --y: 6px; --r: 200deg; }
+.celebrate i:nth-child(3) { --x: 52px; --y: 44px; --r: 90deg; }
+.celebrate i:nth-child(4) { --x: -10px; --y: 60px; --r: 260deg; }
+.celebrate i:nth-child(5) { --x: -58px; --y: 34px; --r: 160deg; }
+.celebrate i:nth-child(6) { --x: -70px; --y: -12px; --r: 300deg; }
+.celebrate i:nth-child(7) { --x: -40px; --y: -52px; --r: 40deg; }
+.celebrate i:nth-child(8) { --x: 6px; --y: -70px; --r: 210deg; }
+.celebrate i:nth-child(9) { --x: 110px; --y: -26px; --r: 330deg; }
+.celebrate i:nth-child(10) { --x: 96px; --y: 40px; --r: 70deg; }
+.celebrate i:nth-child(11) { --x: 26px; --y: 82px; --r: 180deg; }
+.celebrate i:nth-child(12) { --x: -92px; --y: 14px; --r: 250deg; }
+.celebrate i:nth-child(13) { --x: 40px; --y: -86px; --r: 140deg; }
+.celebrate i:nth-child(14) { --x: 130px; --y: 8px; --r: 20deg; }
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(0.6);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate {
+    display: none;
+  }
+}
+
 /* ───────── Pantalla de acceso ───────── */
 .sp-login-submit {
   width: 100%;
@@ -907,5 +1147,37 @@ select:focus {
   .map-node.current .node-icon,
   .notification-button i {
     animation: none;
+  }
+}
+
+/* Separación entre la portada de Inicio y el bloque «Para hoy» */
+.hero + .learning-layout {
+  margin-top: 28px;
+}
+
+/* Barra superior en pantallas estrechas: el nombre de la página se recorta antes que los botones */
+.topbar > .row {
+  flex: 1;
+  min-width: 0;
+}
+
+.breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.breadcrumb b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-tools {
+  flex: none;
+}
+
+@media (max-width: 520px) {
+  .header-tools {
+    gap: 6px;
   }
 }

@@ -1,0 +1,135 @@
+/* =====================================================================
+   SkillPath · Tema oscuro («Celeste polvo» nocturno)
+   Se activa con <html data-theme="dark">. Mantiene la misma paleta:
+   el azul #3A6EA5 sigue siendo el color de botones y elementos activos;
+   solo cambian superficies, textos y los azules usados como texto.
+   ===================================================================== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #0d131b;
+  --surface: #141c27;
+  --surface-2: #1a2431;
+  --border: #243143;
+  --track: #223044;
+  --heat-0: #1a2431;
+
+  --ink: #e6edf5; /* 14.5:1 sobre superficie */
+  --muted: #9daabb; /* 7.3:1 */
+  --subtle: #6e7d90; /* solo íconos y deshabilitados */
+
+  --blue: #3a6ea5; /* igual que en claro: fondo de botones (blanco encima 5.3:1) */
+  --blue-strong: #8fb8e3; /* textos y enlaces azules (8.3:1) */
+  --blue-soft: #1a2b40;
+  --blue-hero: #142235;
+  --blue-200: #22364d;
+  --blue-300: #3a5878;
+  --blue-400: #6fa3d3;
+
+  --warm: #d9a04a;
+  --warm-soft: #2a2216;
+  --warm-border: #4a3a1e;
+  --warm-text: #e9c07f;
+
+  --green: #6cc196;
+  --green-soft: #142a20;
+  --amber-text: #f1c36a;
+  --amber-soft: #2b2412;
+  --red: #f08a7e;
+  --red-soft: #2e1a1a;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 16px -8px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 36px -18px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 28px 72px -24px rgb(0 0 0 / 0.8);
+  --ring: 0 0 0 4px rgb(143 184 227 / 0.22);
+}
+
+/* Azules usados como TEXTO pasan al celeste claro (generado a partir del CSS base) */
+:root[data-theme="dark"] :is(
+  .learning-tabs button.selected,
+  .route-card-icon,
+  .route-continue,
+  .route-progress-summary b,
+  .stage-number.active,
+  .stage-lesson > span,
+  .stage-activity > svg,
+  .lesson-sidebar button.current,
+  .assessment-score,
+  .text-button:hover,
+  .icon-button:hover,
+  .brand-period,
+  .nav-item:hover,
+  .promo-icon,
+  .hero h1 > span,
+  .stat:hover .stat-value,
+  .map-node.current small,
+  .course-art.blue,
+  .course-footer .text-button,
+  .weekly-goal > .row > svg,
+  .tabs button.selected,
+  .skill-card .text-button,
+  .modal-symbol,
+  .sp-ov-card > .text-button,
+  .sp-project-list li > svg,
+  .sp-preview .text-button,
+  .sp-post .text-button
+) {
+  color: var(--blue-strong);
+}
+
+
+/* El hover del botón principal oscurece en vez de aclarar */
+:root[data-theme="dark"] .btn:hover:not(:disabled) {
+  background: #2f5e8f;
+}
+:root[data-theme="dark"] .btn.secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+/* Los pocos colores fijos del archivo base */
+:root[data-theme="dark"] .floating-badge {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--ink);
+}
+:root[data-theme="dark"] .art-object {
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.12);
+  box-shadow: 5px 7px 0 rgb(255 255 255 / 0.03);
+}
+:root[data-theme="dark"] .art-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+}
+:root[data-theme="dark"] .hero {
+  background:
+    radial-gradient(80% 120% at 100% 0%, rgb(143 184 227 / 0.08), transparent 60%),
+    var(--blue-hero);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+:root[data-theme="dark"] .hero-visual img {
+  filter: none;
+}
+:root[data-theme="dark"] .sidebar-overlay,
+:root[data-theme="dark"] .modal-overlay,
+:root[data-theme="dark"] .palette-overlay {
+  background: rgb(0 0 0 / 0.55);
+}
+:root[data-theme="dark"] .btn,
+:root[data-theme="dark"] .nav-item.active {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select {
+  color: var(--ink);
+}
+:root[data-theme="dark"] ::placeholder {
+  color: var(--subtle);
+}
+:root[data-theme="dark"] .lesson-reading pre {
+  background: #0a0f15;
+  border: 1px solid var(--border);
+  color: #cfe0f2; /* en claro usaba --blue-soft, que en oscuro sería ilegible */
+}

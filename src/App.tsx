@@ -59,6 +59,8 @@ import {
   timeOptions,
 } from "./modules/platform/data";
 import { CommandPalette, type PaletteItem } from "./modules/platform/CommandPalette";
+import { applyTheme, initialTheme, type Theme } from "./modules/platform/theme";
+import { Moon, Sun } from "lucide-react";
 import { Login } from "./modules/platform/Login";
 import { WelcomeChat } from "./modules/platform/WelcomeChat";
 import { HomeOverview, type PlatformPage } from "./modules/platform/HomeOverview";
@@ -288,6 +290,12 @@ function App() {
     "Aprendo desarrollo web construyendo proyectos reales: interfaces claras, accesibles y con propósito.",
   );
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(initialTheme);
+  useEffect(() => applyTheme(theme), [theme]);
+  const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
+  // Modo enfoque: lecciones y evaluaciones a pantalla completa, sin barra lateral.
+  const [learningFocus, setLearningFocus] = useState(false);
+  const [learningKey, setLearningKey] = useState(0);
   const [drafts, setDrafts] = useState<{ name: string; description: string }[]>([]);
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
@@ -733,6 +741,28 @@ function App() {
             </div>
           </div>
         </section>
+        <div className="learning-layout">
+          <section>
+            <div className="section-heading row between">
+              <div>
+                <span className="eyebrow">PARA HOY</span>
+                <h2>Continúa donde lo dejaste</h2>
+              </div>
+              <button className="text-button" onClick={() => go("Mis rutas")}>
+                Mis rutas <ArrowUpRight size={16} />
+              </button>
+            </div>
+            <div className="two-courses">
+              <RouteCard index={0} />
+              <RouteCard index={1} />
+            </div>
+          </section>
+          <WeeklyGoal />
+        </div>
+        <div className="dash-tier">
+          <span className="eyebrow">TU CAMINO COMPLETO</span>
+          <p>Tus cifras, tu panel personal, tu mapa de crecimiento y lo que pasa en la comunidad.</p>
+        </div>
         <section className="stats-strip">
           {[
             {
@@ -799,6 +829,7 @@ function App() {
           ))}
         </section>
         <HomeOverview
+          part="path"
           platform={platform}
           go={go}
           continueCourse={(id) => {
@@ -807,24 +838,15 @@ function App() {
           }}
         />
         <GrowthMap />
-        <div className="learning-layout">
-          <section>
-            <div className="section-heading row between">
-              <div>
-                <span className="eyebrow">DALE CONTINUIDAD A TUS IDEAS</span>
-                <h2>Continúa donde lo dejaste</h2>
-              </div>
-              <button className="text-button" onClick={() => go("Mis rutas")}>
-                Mis rutas <ArrowUpRight size={16} />
-              </button>
-            </div>
-            <div className="two-courses">
-              <RouteCard index={0} />
-              <RouteCard index={1} />
-            </div>
-          </section>
-          <WeeklyGoal />
-        </div>
+        <HomeOverview
+          part="community"
+          platform={platform}
+          go={go}
+          continueCourse={(id) => {
+            setCourseToOpen(id);
+            go("Áreas y cursos");
+          }}
+        />
       </>
     );
   }
@@ -1529,8 +1551,18 @@ function App() {
       />
     );
   }
+  const focusMode = page === "Lección" || (page === "Mis rutas" && learningFocus);
+  const exitFocus = () => {
+    if (page === "Lección") {
+      go("Explorar aprendizaje");
+      return;
+    }
+    setLearningFocus(false);
+    setLearningKey((key) => key + 1); // vuelve a la lista de «Mis rutas»
+    window.scrollTo({ top: 0 });
+  };
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${focusMode ? "focus-mode" : ""}`}>
       {mobileMenu && <div className="sidebar-overlay" onClick={() => setMobileMenu(false)} />}
       <aside className={`sidebar ${mobileMenu ? "mobile-open" : ""}`}>
         <a
@@ -1591,6 +1623,11 @@ function App() {
       <div className="main-shell">
         <header className="topbar">
           <div className="row">
+            {focusMode && (
+              <button className="focus-exit" onClick={exitFocus}>
+                <X size={16} /> Salir
+              </button>
+            )}
             <button
               className="icon-button mobile-toggle"
               aria-label="Abrir navegación"
@@ -1618,6 +1655,14 @@ function App() {
               <Flame size={17} />7 <span>días de racha</span>
             </span>
             <button
+              className="icon-button theme-toggle"
+              aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+              title={theme === "dark" ? "Tema claro" : "Tema oscuro"}
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}
+            </button>
+            <button
               className="icon-button notification-button"
               aria-label="Notificaciones"
               onClick={() => setModal("Notificaciones")}
@@ -1637,7 +1682,7 @@ function App() {
         <main key={page} className={`main-content ${page === "Lección" ? "lesson-page" : ""}`}>
           {page === "Inicio" && Dashboard()}
           {page === "Explorar aprendizaje" && Explore()}
-          {page === "Mis rutas" && <LearningRoutes />}
+          {page === "Mis rutas" && <LearningRoutes key={learningKey} onFocusChange={setLearningFocus} />}
           {page === "Lección" && Lesson()}
           {page === "Mi progreso" && Growth()}
           {page === "Mis habilidades" && Skills()}
@@ -1704,6 +1749,21 @@ function App() {
                     ))}
                   </select>
                 </label>
+                <div className="setting-row">
+                  <div>
+                    <b>Tema oscuro</b>
+                    <p>Se recuerda en este navegador.</p>
+                  </div>
+                  <button
+                    className={`toggle ${theme === "dark" ? "on" : ""}`}
+                    role="switch"
+                    aria-checked={theme === "dark"}
+                    aria-label="Tema oscuro"
+                    onClick={toggleTheme}
+                  >
+                    <span />
+                  </button>
+                </div>
                 <h3>Notificaciones de demostración</h3>
                 {[
                   "Recordatorios de aprendizaje",
