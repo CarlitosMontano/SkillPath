@@ -469,14 +469,14 @@ function App() {
             <path
               d="M70 62 C160 62 170 10 285 18 S420 90 500 62 S650 0 715 20 S850 85 930 58"
               fill="none"
-              stroke="#e1e3e8"
+              style={{ stroke: "var(--border)" }}
               strokeWidth="2"
               strokeDasharray="5 6"
             />
             <path
               d="M70 62 C160 62 170 10 285 18 S420 90 500 62 S650 0 715 20"
               fill="none"
-              stroke="#b4c3f9"
+              style={{ stroke: "var(--blue-300)" }}
               strokeWidth="2"
             />
           </svg>
