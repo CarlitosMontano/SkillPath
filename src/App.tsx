@@ -44,7 +44,19 @@ import {
   GitBranch,
   Award,
 } from "lucide-react";
+import { Bot, GraduationCap, LogOut, MessagesSquare } from "lucide-react";
 import { LearningRoutes } from "./modules/learning/LearningRoutes";
+import { usePlatformState } from "./modules/platform/state";
+import { goalOptions, experienceOptions, timeOptions } from "./modules/platform/data";
+import { Login } from "./modules/platform/Login";
+import { WelcomeChat } from "./modules/platform/WelcomeChat";
+import { HomeOverview, type PlatformPage } from "./modules/platform/HomeOverview";
+import { AreasCourses } from "./modules/platform/AreasCourses";
+import { Portfolio } from "./modules/platform/Portfolio";
+import { AffiliatedCertifications, RecommendedCertifications } from "./modules/platform/Certifications";
+import { Forum } from "./modules/platform/Forum";
+import { Events } from "./modules/platform/Events";
+import "./modules/platform/platform.css";
 
 type Page =
   | "Inicio"
@@ -53,22 +65,25 @@ type Page =
   | "Mis proyectos"
   | "Mis habilidades"
   | "Mi progreso"
-  | "Mi CV y portafolio"
-  | "Eventos y hackathons"
-  | "Certificaciones"
   | "Configuración"
-  | "Lección";
+  | "Lección"
+  | PlatformPage;
 const navigation = [
   { name: "Inicio", icon: Home },
+  { name: "Guía de bienvenida", icon: Bot },
+  { name: "Áreas y cursos", icon: BookOpen },
   { name: "Explorar aprendizaje", icon: Compass },
   { name: "Mis rutas", icon: GitBranch },
   { name: "Mis proyectos", icon: FolderKanban },
   { name: "Mis habilidades", icon: Layers3 },
   { name: "Mi progreso", icon: TrendingUp },
-  { name: "Mi CV y portafolio", icon: FileText },
-  { name: "Eventos y hackathons", icon: CalendarDays },
-  { name: "Certificaciones", icon: Award },
+  { name: "Portafolio", icon: FileText },
+  { name: "Foro", icon: MessagesSquare },
+  { name: "Eventos recomendados", icon: CalendarDays },
+  { name: "Certificaciones afiliadas", icon: GraduationCap },
+  { name: "Certificaciones recomendadas", icon: Award },
 ] as const;
+const communityStart = navigation.findIndex((item) => item.name === "Foro");
 const routes = [
   {
     title: "Diseño UX/UI desde cero",
@@ -247,7 +262,8 @@ function App() {
   const [goals, setGoals] = useState([true, true, true, true, false]);
   const [period, setPeriod] = useState("Mes");
   const [skillFilter, setSkillFilter] = useState("Todas");
-  const [savedEvents, setSavedEvents] = useState<string[]>([]);
+  const platform = usePlatformState();
+  const [courseToOpen, setCourseToOpen] = useState<string | null>(null);
   const [settings, setSettings] = useState([true, true, false]);
   const [userName, setUserName] = useState("Alex");
   const [surname, setSurname] = useState("Morgan");
@@ -304,6 +320,18 @@ function App() {
     setPage(next);
     setMobileMenu(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const fullName = `${userName} ${surname}`.trim();
+  const initials = (userName.charAt(0) + (surname.charAt(0) || userName.charAt(1))).toUpperCase();
+  const todayLabel = (() => {
+    const text = new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  })();
+  const logout = () => {
+    platform.logout();
+    setModal(null);
+    setMobileMenu(false);
+    setPage("Inicio");
   };
   const openLesson = (index: number) => {
     setActiveRoute(index);
@@ -553,7 +581,7 @@ function App() {
       <>
         <div className="welcome-row">
           <span>UN NUEVO DÍA, UN NUEVO PASO</span>
-          <span>Miércoles, 14 de mayo de 2025</span>
+          <span>{todayLabel}</span>
         </div>
         <section className="hero">
           <div className="hero-content">
@@ -591,7 +619,7 @@ function App() {
               </span>
               <span className="meta-divider" />
               <span>
-                <Target size={13} /> Tu objetivo: Diseñador de producto
+                <Target size={13} /> Tu objetivo: {platform.profile?.goal ?? "Define tu objetivo con la guía"}
               </span>
             </div>
           </div>
@@ -684,6 +712,14 @@ function App() {
             </button>
           ))}
         </section>
+        <HomeOverview
+          platform={platform}
+          go={go}
+          continueCourse={(id) => {
+            setCourseToOpen(id);
+            go("Áreas y cursos");
+          }}
+        />
         <GrowthMap />
         <div className="learning-layout">
           <section>
@@ -1423,178 +1459,30 @@ function App() {
       </>
     );
   }
-  function Opportunities({ certifications = false }: { certifications?: boolean }) {
-    const items = certifications
-      ? [
-          {
-            title: "Responsive Web Design",
-            type: "Certificación",
-            host: "freeCodeCamp",
-            date: "300 horas · A tu ritmo",
-            mode: "Online",
-            level: "Principiante",
-            free: true,
-            url: "https://www.freecodecamp.org/learn/2022/responsive-web-design/",
-            desc: "HTML, CSS y cinco proyectos para demostrar lo aprendido.",
-            requirements: "Sin conocimientos previos",
-          },
-          {
-            title: "Google UX Design",
-            type: "Certificado profesional",
-            host: "Google · Coursera",
-            date: "6 meses · A tu ritmo",
-            mode: "Online",
-            level: "Principiante",
-            free: false,
-            url: "https://www.coursera.org/professional-certificates/google-ux-design",
-            desc: "Aprende el proceso de diseño centrado en las personas.",
-            requirements: "Sin experiencia previa · Precio según región",
-          },
-          {
-            title: "JavaScript Algorithms",
-            type: "Certificación",
-            host: "freeCodeCamp",
-            date: "300 horas · A tu ritmo",
-            mode: "Online",
-            level: "Intermedio",
-            free: true,
-            url: "https://www.freecodecamp.org/learn/",
-            desc: "Resuelve problemas reales y domina los fundamentos de JavaScript.",
-            requirements: "Conocimientos básicos de programación",
-          },
-        ]
-      : [
-          {
-            title: "NASA Space Apps Challenge",
-            type: "Hackathon",
-            host: "NASA",
-            date: "Consulta la próxima edición",
-            mode: "Híbrido · Internacional",
-            level: "Todos los niveles",
-            free: true,
-            url: "https://www.spaceappschallenge.org/",
-            desc: "Usa datos abiertos para resolver retos de la Tierra y el espacio.",
-            requirements: "Equipos multidisciplinares",
-          },
-          {
-            title: "Comunidades que construyen",
-            type: "Comunidad",
-            host: "Google Developer Groups",
-            date: "Eventos durante todo el año",
-            mode: "Presencial y online",
-            level: "Todos los niveles",
-            free: true,
-            url: "https://gdg.community.dev/",
-            desc: "Conecta con personas que comparten tus ganas de aprender.",
-            requirements: "Busca el capítulo de tu ciudad",
-          },
-          {
-            title: "Retos de datos con impacto",
-            type: "Datathon",
-            host: "Kaggle",
-            date: "Convocatorias abiertas",
-            mode: "Online · Internacional",
-            level: "Intermedio",
-            free: true,
-            url: "https://www.kaggle.com/competitions",
-            desc: "Pon a prueba tus habilidades con desafíos de datos del mundo real.",
-            requirements: "Python y análisis de datos",
-          },
-        ];
+  if (!platform.session) {
     return (
-      <>
-        <SectionHeading
-          eyebrow={
-            certifications
-              ? "DALE RESPALDO A TU CAMINO"
-              : "APRENDE TAMBIÉN FUERA DE TU ZONA CONOCIDA"
+      <Login
+        accounts={platform.accounts}
+        onRegister={platform.addAccount}
+        onLogin={(session) => {
+          platform.setSession(session);
+          setUserName(session.name);
+          setSurname(session.surname);
+          if (session.isNew) {
+            setPage("Guía de bienvenida");
+          } else {
+            platform.setProfile(
+              platform.profile ?? {
+                area: "fullstack",
+                experience: experienceOptions[1],
+                goal: goalOptions.fullstack[0],
+                time: timeOptions[1],
+              },
+            );
+            setPage("Inicio");
           }
-          title={
-            certifications ? "Lo que sabes, reconocido." : "Tu próxima oportunidad está ahí fuera."
-          }
-          subtitle={
-            certifications
-              ? "Certificaciones que conectan con tus habilidades y tus objetivos."
-              : "Encuentra retos, comunidades y personas con las que construir algo distinto."
-          }
-        />
-        <div className="opportunity-feature">
-          <span className="eyebrow">
-            {certifications
-              ? "CONOCIMIENTO CON RESPALDO"
-              : "EL CONOCIMIENTO CRECE CUANDO SE COMPARTE"}
-          </span>
-          <h2>
-            {certifications
-              ? "No es solo un certificado. Es lo que hay detrás."
-              : "Tus ideas pueden llegar más lejos en equipo."}
-          </h2>
-          <div className="feature-symbol">
-            {certifications ? (
-              <Award size={95} strokeWidth={1} />
-            ) : (
-              <Users size={95} strokeWidth={1} />
-            )}
-          </div>
-        </div>
-        <div className="section-heading row between">
-          <h2>{certifications ? "Seleccionadas para ti" : "En tu radar"}</h2>
-          <span className="muted">Información orientativa · Consulta los sitios oficiales</span>
-        </div>
-        <div className="opportunity-grid">
-          {items.map((item, i) => (
-            <article className="panel opportunity-card" key={item.title}>
-              <div className="row between">
-                <span className={`opportunity-logo ${["blue", "purple", "green"][i]}`}>
-                  {certifications ? <Award size={30} /> : <GlobeIcon index={i} />}
-                </span>
-                <span className="pill green-pill">{item.free ? "Gratuito" : "De pago"}</span>
-              </div>
-              <span className="eyebrow">
-                {item.type} · {item.host}
-              </span>
-              <h2>{item.title}</h2>
-              <p>{item.desc}</p>
-              <ul>
-                <li>
-                  <CalendarDays size={15} />
-                  {item.date}
-                </li>
-                <li>
-                  <Compass size={15} />
-                  {item.mode}
-                </li>
-                <li>
-                  <TrendingUp size={15} />
-                  {item.level}
-                </li>
-                <li>
-                  <Users size={15} />
-                  {item.requirements}
-                </li>
-              </ul>
-              <div className="opportunity-actions">
-                <a className="text-button" href={item.url} target="_blank" rel="noreferrer">
-                  Sitio oficial <ExternalLink size={14} />
-                </a>
-                <button
-                  aria-label={`Guardar ${item.title}`}
-                  className={`icon-button ${savedEvents.includes(item.title) ? "saved" : ""}`}
-                  onClick={() =>
-                    setSavedEvents((old) =>
-                      old.includes(item.title)
-                        ? old.filter((x) => x !== item.title)
-                        : [...old, item.title],
-                    )
-                  }
-                >
-                  {savedEvents.includes(item.title) ? <Check size={18} /> : <Plus size={18} />}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </>
+        }}
+      />
     );
   }
   return (
@@ -1618,7 +1506,9 @@ function App() {
         <nav>
           {navigation.map((item, i) => (
             <div key={item.name}>
-              {i === 7 && <span className="nav-label discover-label">DESCUBRE OPORTUNIDADES</span>}
+              {i === communityStart && (
+                <span className="nav-label discover-label">COMUNIDAD Y OPORTUNIDADES</span>
+              )}
               <button
                 className={`nav-item ${page === item.name ? "active" : ""}`}
                 onClick={() => go(item.name)}
@@ -1628,7 +1518,7 @@ function App() {
                 {item.name === "Mis rutas" && (
                   <span className="nav-count">{enrolledRoutes.length}</span>
                 )}
-                {item.name === "Eventos y hackathons" && <i className="nav-new" />}
+                {item.name === "Eventos recomendados" && <i className="nav-new" />}
               </button>
             </div>
           ))}
@@ -1652,9 +1542,9 @@ function App() {
             Configuración
           </button>
           <button className="profile-button" onClick={() => setModal("Tu perfil")}>
-            <span className="avatar">AM</span>
+            <span className="avatar">{initials}</span>
             <span>
-              <b>{userName} Morgan</b>
+              <b>{fullName}</b>
               <small>Cuenta personal</small>
             </span>
             <MoreHorizontal size={18} />
@@ -1705,7 +1595,7 @@ function App() {
               aria-label="Ver perfil"
               onClick={() => setModal("Tu perfil")}
             >
-              AM
+              {initials}
             </button>
           </div>
         </header>
@@ -1717,9 +1607,32 @@ function App() {
           {page === "Mi progreso" && Growth()}
           {page === "Mis habilidades" && Skills()}
           {page === "Mis proyectos" && Projects()}
-          {page === "Mi CV y portafolio" && CV()}
-          {page === "Eventos y hackathons" && Opportunities({})}
-          {page === "Certificaciones" && Opportunities({ certifications: true })}
+          {page === "Guía de bienvenida" && (
+            <WelcomeChat
+              name={userName}
+              profile={platform.profile}
+              onFinish={(profile) => {
+                platform.setProfile(profile);
+                notify("¡Tu ruta está lista! Te recomendamos empezar por tu curso actual.");
+                go("Inicio");
+              }}
+            />
+          )}
+          {page === "Áreas y cursos" && (
+            <AreasCourses
+              platform={platform}
+              notify={notify}
+              initialCourseId={courseToOpen}
+              openLearningRoute={() => go("Mis rutas")}
+            />
+          )}
+          {page === "Portafolio" && (
+            <Portfolio platform={platform} notify={notify} fullName={fullName} cvView={CV()} />
+          )}
+          {page === "Foro" && <Forum platform={platform} notify={notify} authorName={fullName} />}
+          {page === "Eventos recomendados" && <Events platform={platform} notify={notify} />}
+          {page === "Certificaciones afiliadas" && <AffiliatedCertifications />}
+          {page === "Certificaciones recomendadas" && <RecommendedCertifications notify={notify} />}
           {page === "Configuración" && (
             <>
               <SectionHeading
@@ -1770,6 +1683,9 @@ function App() {
                   Prototipo de SkillPath con datos ficticios. No se almacena información al cerrar o
                   recargar.
                 </p>
+                <button className="btn secondary sp-logout" onClick={logout}>
+                  Cerrar sesión <LogOut size={16} />
+                </button>
               </section>
             </>
           )}
@@ -1844,8 +1760,8 @@ function App() {
             ) : modal === "Tu perfil" ? (
               <>
                 <div className="profile-modal">
-                  <span className="avatar">{userName.slice(0, 1)}M</span>
-                  <h3>{userName} Morgan</h3>
+                  <span className="avatar">{initials}</span>
+                  <h3>{fullName}</h3>
                   <p>Explorador de habilidades · Nivel 4</p>
                 </div>
                 <p>
@@ -1855,11 +1771,14 @@ function App() {
                 <Button
                   onClick={() => {
                     setModal(null);
-                    go("Mi CV y portafolio");
+                    go("Portafolio");
                   }}
                 >
                   Ver mi perfil profesional <ArrowUpRight size={16} />
                 </Button>
+                <button className="btn secondary sp-logout" onClick={logout}>
+                  Cerrar sesión <LogOut size={16} />
+                </button>
               </>
             ) : modal === "Nuevo proyecto" ? (
               <form
@@ -1934,15 +1853,6 @@ function App() {
         </div>
       )}
     </div>
-  );
-}
-function GlobeIcon({ index }: { index: number }) {
-  return index === 0 ? (
-    <Sparkles size={30} />
-  ) : index === 1 ? (
-    <Users size={30} />
-  ) : (
-    <BrainCircuit size={30} />
   );
 }
 export default App;
