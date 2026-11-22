@@ -1,0 +1,708 @@
+/* =====================================================================
+   SkillPath · Capa de refinamiento visual
+   Se carga después de index.css y platform.css. Solo cambia la
+   apariencia y el movimiento: la paleta «Celeste polvo» y toda la
+   lógica de la app se mantienen tal cual.
+   ===================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap");
+
+:root {
+  --font-ui: "Geist", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-accent: "Instrument Serif", Georgia, serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-xs: 0 1px 2px rgb(23 38 54 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(23 38 54 / 0.04), 0 4px 12px -6px rgb(23 38 54 / 0.08);
+  --shadow-md: 0 2px 4px rgb(23 38 54 / 0.04), 0 16px 32px -16px rgb(23 38 54 / 0.18);
+  --shadow-lg: 0 24px 64px -24px rgb(23 38 54 / 0.35);
+  --ring: 0 0 0 4px color-mix(in srgb, var(--blue) 16%, transparent);
+}
+
+/* ───────── Tipografía ───────── */
+body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  font-feature-settings: "ss01", "cv11";
+}
+
+h1,
+h2,
+h3,
+.brand,
+.assessment-score {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+h1 {
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  letter-spacing: -0.015em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Números alineados en estadísticas, progresos y contadores */
+.stat-value,
+.goal-count,
+.assessment-score,
+.nav-count,
+.course-progress b,
+.sp-ring,
+.streak {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiquetas pequeñas: monoespaciada, legible, con intención */
+.eyebrow,
+.nav-label,
+.welcome-row > span:first-child,
+.art-caption,
+.art-number {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.eyebrow {
+  color: var(--blue-strong);
+}
+
+.nav-label,
+.nav-label.discover-label {
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.nav-item span {
+  line-height: 1.3;
+}
+
+/* El acento de la bienvenida en cursiva editorial */
+.hero h1 {
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.hero h1 > span {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  padding-right: 0.04em;
+}
+
+.underline-swoosh {
+  transform-origin: left;
+  animation: draw-x 0.9s var(--ease-out) 0.35s both;
+}
+
+.page-heading h1 {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.page-heading > p,
+.section-description {
+  max-width: 62ch;
+  line-height: 1.6;
+}
+
+/* ───────── Superficies ───────── */
+.panel,
+.route-card,
+.stats-strip,
+.lesson-reading,
+.lesson-sidebar,
+.skills-panel,
+.stage-accordion,
+.assessment-screen,
+.assessment-result,
+.project-screen,
+.exam-intro {
+  border-color: var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.hero {
+  border-radius: 20px;
+  background:
+    radial-gradient(80% 120% at 100% 0%, rgb(255 255 255 / 0.55), transparent 60%),
+    var(--blue-hero);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+.hero-visual img {
+  border-radius: var(--radius-md);
+}
+
+.weekly-goal {
+  border-radius: var(--radius-lg);
+}
+
+.course-art {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Tarjetas que se pueden abrir: elevación sutil al pasar el cursor */
+.route-card,
+.sp-card,
+.sp-ov-card,
+.stat,
+.map-node .node-icon {
+  transition:
+    transform 260ms var(--ease-out),
+    box-shadow 260ms var(--ease-out),
+    border-color 200ms ease;
+}
+
+.route-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-xs);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .route-card:hover,
+  .sp-card.panel:hover,
+  .sp-ov-card.panel:hover {
+    transform: translateY(-2px);
+    border-color: var(--blue-200);
+    box-shadow: var(--shadow-md);
+  }
+
+  .route-card .course-art .art-object {
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .route-card:hover .course-art .art-object {
+    transform: scale(1.04) rotate(-2deg);
+  }
+
+  .map-node:hover .node-icon {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* ───────── Botones ───────── */
+.btn {
+  gap: 10px;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 13.5px;
+  font-weight: 550;
+  letter-spacing: -0.005em;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 2px rgb(23 38 54 / 0.12);
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: none;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 6px 16px -8px color-mix(in srgb, var(--blue) 70%, transparent);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn.secondary {
+  box-shadow: var(--shadow-xs);
+}
+
+.btn.secondary:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--blue-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn svg,
+.text-button svg {
+  transition: transform 220ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) svg:last-child,
+  .text-button:hover svg:last-child {
+    transform: translateX(2px);
+  }
+}
+
+.text-button {
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--blue-strong);
+}
+
+.text-button:active,
+.icon-button:active,
+.nav-item:active,
+.profile-button:active {
+  transform: scale(0.97);
+}
+
+.icon-button {
+  border-radius: 10px;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+/* ───────── Formularios ───────── */
+input,
+textarea,
+select {
+  border-radius: 10px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: var(--ring);
+}
+
+:focus-visible {
+  outline-color: var(--blue);
+}
+
+/* ───────── Pastillas y chips ───────── */
+.pill,
+.level,
+.nav-count,
+.status-pill {
+  border-radius: 999px;
+}
+
+.pill {
+  padding: 4px 10px;
+  font-weight: 550;
+}
+
+.nav-count {
+  padding: 1px 8px;
+  font-weight: 600;
+}
+
+/* Filtros, pestañas y selectores segmentados */
+.filter-chips button {
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 500;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.filter-chips button:hover:not(.selected) {
+  color: var(--ink);
+}
+
+.filter-chips button:active {
+  transform: scale(0.96);
+}
+
+.filter-chips button.selected {
+  box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--blue) 80%, transparent);
+}
+
+.tabs button {
+  position: relative;
+  font-weight: 500;
+  transition: color 180ms ease;
+}
+
+.tabs button:hover {
+  color: var(--ink);
+}
+
+.tabs button.selected {
+  font-weight: 600;
+  animation: tab-underline 260ms var(--ease-out);
+}
+
+.segmented {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.segmented button {
+  border-radius: 7px;
+  font-weight: 500;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+/* Tamaño mínimo legible para las etiquetas (gana a reglas más específicas del archivo base) */
+.eyebrow.eyebrow,
+.welcome-row > span:first-child {
+  font-size: 11.5px;
+}
+
+.weekly-goal .eyebrow.eyebrow,
+.modal > .eyebrow.eyebrow,
+.section-heading .eyebrow.eyebrow,
+.route-body .eyebrow.eyebrow {
+  font-size: 11px;
+}
+
+.art-caption {
+  font-size: 10.5px;
+}
+
+.map-legend {
+  font-size: 12px;
+}
+
+/* ───────── Barra lateral ───────── */
+.sidebar {
+  background: color-mix(in srgb, var(--surface) 92%, var(--page));
+  padding-top: 26px;
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  margin-bottom: 36px;
+}
+
+.brand-icon {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 6px 14px -6px color-mix(in srgb, var(--blue) 80%, transparent);
+  transition: transform 400ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover .brand-icon {
+    transform: rotate(0deg);
+  }
+}
+
+.nav-item {
+  position: relative;
+  padding: 9px 12px;
+  margin-bottom: 2px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.nav-item svg {
+  flex: none;
+  transition: transform 220ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:not(.active):hover svg {
+    transform: translateX(1px) scale(1.06);
+  }
+}
+
+.nav-item.active,
+.nav-item.active:hover {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 6px 16px -8px color-mix(in srgb, var(--blue) 80%, transparent);
+  animation: nav-pop 260ms var(--ease-out);
+}
+
+.nav-item.active .nav-count {
+  background: rgb(255 255 255 / 0.2);
+  color: #fff;
+}
+
+.sidebar-promo {
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(120% 80% at 100% 0%, var(--blue-soft), transparent 70%),
+    var(--surface);
+}
+
+.profile-button {
+  transition: background-color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-button:hover {
+    background: var(--surface-2);
+  }
+}
+
+/* ───────── Barra superior ───────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 68px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: saturate(1.6) blur(14px);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+}
+
+.header-search {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.header-search:hover {
+  border-color: var(--blue-300);
+}
+
+.streak {
+  font-weight: 600;
+}
+
+.notification-button i {
+  animation: ping 2.6s var(--ease-out) infinite;
+}
+
+/* ───────── Progreso ───────── */
+.progress {
+  height: 6px;
+  border-radius: 999px;
+}
+
+.progress > span {
+  animation: none;
+  transition: width 800ms var(--ease-out);
+  background: linear-gradient(90deg, var(--blue), color-mix(in srgb, var(--blue) 70%, var(--blue-400)));
+
+  @starting-style {
+    width: 0 !important;
+  }
+}
+
+/* Línea del mapa de crecimiento: el tramo recorrido se dibuja */
+.map-line path:nth-child(2) {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: draw-path 1.6s var(--ease-in-out) 0.2s forwards;
+}
+
+.map-node.current .node-icon {
+  animation: halo 2.8s var(--ease-out) infinite;
+}
+
+/* ───────── Entrada de cada pantalla ───────── */
+.main-content {
+  animation: none;
+}
+
+.main-content > * {
+  animation: rise 520ms var(--ease-out) both;
+}
+
+.main-content > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.main-content > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.main-content > *:nth-child(4) {
+  animation-delay: 110ms;
+}
+.main-content > *:nth-child(5) {
+  animation-delay: 140ms;
+}
+.main-content > *:nth-child(6) {
+  animation-delay: 160ms;
+}
+.main-content > *:nth-child(n + 7) {
+  animation-delay: 180ms;
+}
+
+/* Rejillas de tarjetas: cascada corta */
+.sp-grid > *,
+.stats-strip > .stat {
+  animation: rise 460ms var(--ease-out) both;
+}
+
+.sp-grid > *:nth-child(2),
+.stats-strip > .stat:nth-child(2) {
+  animation-delay: 50ms;
+}
+.sp-grid > *:nth-child(3),
+.stats-strip > .stat:nth-child(3) {
+  animation-delay: 90ms;
+}
+.sp-grid > *:nth-child(4),
+.stats-strip > .stat:nth-child(4) {
+  animation-delay: 120ms;
+}
+.sp-grid > *:nth-child(5),
+.stats-strip > .stat:nth-child(5) {
+  animation-delay: 145ms;
+}
+.sp-grid > *:nth-child(n + 6) {
+  animation-delay: 165ms;
+}
+
+/* ───────── Modales y avisos ───────── */
+.modal-overlay {
+  animation: fade 200ms ease both;
+  background: rgb(23 38 54 / 0.32);
+}
+
+.modal {
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 260ms var(--ease-out) both;
+}
+
+.toast {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  animation: toast-up 400ms var(--ease-out) both;
+}
+
+/* ───────── Pantalla de acceso ───────── */
+.sp-login-submit {
+  width: 100%;
+}
+
+/* ───────── Animaciones ───────── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes toast-up {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes nav-pop {
+  from {
+    transform: scale(0.97);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes tab-underline {
+  from {
+    border-color: transparent;
+  }
+}
+
+@keyframes draw-x {
+  from {
+    transform: rotate(-2deg) scaleX(0);
+  }
+  to {
+    transform: rotate(-2deg) scaleX(1);
+  }
+}
+
+@keyframes draw-path {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes halo {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 35%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--blue) 0%, transparent);
+  }
+}
+
+@keyframes ping {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--warm) 50%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--warm) 0%, transparent);
+  }
+}
+
+/* Menos movimiento: se conservan los fundidos, se quitan desplazamientos */
+@media (prefers-reduced-motion: reduce) {
+  .map-line path:nth-child(2) {
+    stroke-dashoffset: 0;
+  }
+  .map-node.current .node-icon,
+  .notification-button i {
+    animation: none;
+  }
+}
